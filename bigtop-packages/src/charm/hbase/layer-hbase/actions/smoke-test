@@ -1,0 +1,29 @@
+#!/bin/bash
+set -ex
+
+if ! charms.reactive is_state 'hbase.installed'; then
+    action-fail 'HBase not yet ready'
+    exit
+fi
+
+MROWS=`action-get mrows`
+
+# create dir to store results
+RUN=`date +%s`
+RESULT_DIR=/opt/hbase-perf-results
+RESULT_LOG=${RESULT_DIR}/${RUN}.log
+mkdir -p ${RESULT_DIR}
+chown -R hbase:hbase ${RESULT_DIR}
+
+benchmark-start
+START=`date +%s`
+su hbase << EOF
+echo 'Running performance evaluation'
+hbase org.apache.hadoop.hbase.PerformanceEvaluation --nomapred randomWrite ${MROWS} &> ${RESULT_LOG}
+EOF
+STOP=`date +%s`
+benchmark-finish
+
+DURATION=`expr $STOP - $START`
+benchmark-composite "${DURATION}" 'secs' 'asc'
+benchmark-raw ${RESULT_LOG}
