@@ -1,0 +1,76 @@
+from charms.reactive import when, when_not
+from charms.reactive import is_state, set_state, remove_state
+from charmhelpers.core import hookenv
+from charms.layer.apache_zeppelin import Zeppelin
+
+
+@when('bigtop.available')
+def report_status():
+    hadoop_joined = is_state('hadoop.joined')
+    hadoop_ready = is_state('hadoop.ready')
+    hive_joined = is_state('hive.connected')
+    hive_ready = is_state('hive.available')
+    if not hadoop_joined:
+        hookenv.status_set('blocked',
+                           'waiting for relation to hadoop plugin')
+    elif not hadoop_ready:
+        hookenv.status_set('waiting',
+                           'waiting for hadoop')
+    elif hive_joined and not hive_ready:
+        hookenv.status_set('waiting',
+                           'waiting for hive')
+
+
+@when('bigtop.available', 'hadoop.ready')
+@when_not('zeppelin.installed')
+def initial_setup(hadoop):
+    hookenv.status_set('maintenance', 'installing zeppelin')
+    zeppelin = Zeppelin()
+    zeppelin.install()
+    zeppelin.initial_zeppelin_config()
+    zeppelin.copy_tutorial('flume-tutorial')
+    zeppelin.copy_tutorial('hdfs-tutorial')
+    zeppelin.open_ports()
+    set_state('zeppelin.installed')
+    hookenv.status_set('active', 'ready')
+
+
+@when('zeppelin.installed', 'hive.ready')
+@when_not('zeppelin.hive.configured')
+def configure_hive(hive):
+    zeppelin = Zeppelin()
+    zeppelin.configure_hive(hive)
+    set_state('zeppelin.hive.configured')
+
+
+@when('zeppelin.installed', 'zeppelin.hive.configured')
+@when_not('hive.ready')
+def unconfigure_hive():
+    zeppelin = Zeppelin()
+    zeppelin.configure_hive(None)
+    remove_state('zeppelin.hive.configured')
+
+
+@when('zeppelin.installed', 'spark.ready')
+@when_not('zeppelin.spark.configured')
+def configure_spark(spark):
+    zeppelin = Zeppelin()
+    zeppelin.configure_spark(spark)
+    set_state('zeppelin.spark.configured')
+
+
+@when('zeppelin.installed', 'zeppelin.spark.configured')
+@when_not('spark.ready')
+def unconfigure_spark():
+    zeppelin = Zeppelin()
+    zeppelin.configure_spark(None)
+    remove_state('zeppelin.spark.configured')
+
+
+@when('zeppelin.installed')
+@when_not('hadoop.ready')
+def stop_zeppelin():
+    zeppelin = Zeppelin()
+    zeppelin.stop()
+    zeppelin.close_ports()
+    remove_state('zeppelin.installed')
