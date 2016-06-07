@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+set -ex
+
+if hdfs dfs -stat /tmp/input/ &> /dev/null; then
+    hdfs dfs -rm -r -skipTrash /tmp/input/ || true
+fi
+
+hdfs dfs -mkdir /tmp/input/
+hdfs dfs -put resources/links-converted.txt /tmp/input/
+hdfs dfs -put resources/users.txt /tmp/input/
+
+if hdfs dfs -stat temp &> /dev/null; then
+    hdfs dfs -rm -r -skipTrash temp || true
+fi
+if hdfs dfs -stat output &> /dev/null; then
+    hdfs dfs -rm -r -skipTrash output || true
+fi
+
+hadoop jar /usr/lib/mahout/mahout-mr-0.11.1-job.jar org.apache.mahout.cf.taste.hadoop.item.RecommenderJob -Dmapred.input.dir=/tmp/input/links-converted.txt -Dmapred.output.dir=output --usersFile /tmp/input/users.txt --booleanData -s SIMILARITY_LOGLIKELIHOOD
