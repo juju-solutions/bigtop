@@ -5,7 +5,6 @@ Reactive handlers for Zookeeper.
 from charmhelpers.core import hookenv
 from charms.layer.zookeeper import Zookeeper
 from charms.reactive import set_state, when, when_not
-from jujubigdata.utils import DistConfig
 
 
 @when('bigtop.available')
@@ -59,7 +58,7 @@ def quorum_remove(zkpeer):
 
 @when('zookeeper.started', 'zkclient.joined')
 def serve_client(client):
-    config = DistConfig()
+    config = Zookeeper().dist_config
     port = config.port('zookeeper')
     rest_port = config.port('zookeeper-rest')  # TODO: add zookeeper REST
     client.send_port(port, rest_port)
