@@ -1,2 +1,2 @@
 smoke-test:
-    description: Verify that Pig is working.
+    description: Verify that Pig is working by running an /etc/passwd analysis job.
