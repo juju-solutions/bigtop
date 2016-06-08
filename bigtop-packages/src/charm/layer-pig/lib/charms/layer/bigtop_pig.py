@@ -17,14 +17,9 @@ class Pig(object):
         '''
         # Dirs are handled by the bigtop deb. No need to call out to
         # dist_config to do that work.
-        roles = ['hadoop-client']
-
-        bigtop = Bigtop()
-        bigtop.render_site_yaml(roles=roles)
-        bigtop.trigger_puppet()
-
         roles = ['pig-client']
 
+        bigtop = Bigtop()
         bigtop.render_site_yaml(roles=roles)
         bigtop.trigger_puppet()
 
