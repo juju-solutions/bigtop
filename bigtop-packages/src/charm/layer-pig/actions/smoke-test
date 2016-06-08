@@ -52,3 +52,5 @@ elif is_state('pig.configured.yarn'):
 
 if 'ubuntu' not in output:
     fail('Unable to analyze passwd file with Pig', output)
+
+hookenv.action_set({'outcome': 'success'})

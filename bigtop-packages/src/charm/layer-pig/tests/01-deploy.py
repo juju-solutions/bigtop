@@ -18,7 +18,17 @@ class TestDeploy(unittest.TestCase):
 
         cls.d.setup(timeout=900)
         cls.d.sentry.wait(timeout=1800)
-        cls.unit = cls.d.sentry['pig'][0]
+        cls.pig = cls.d.sentry['pig'][0]
+
+    def smoke_test(self):
+        """Smoke test validates Pig is working in local or yarn mode."""
+        unit_name = self.pig.info['unit_name']
+        uuid = self.d.action_do(unit_name, 'smoke-test')
+        result = self.d.action_fetch(uuid)
+        # pig smoke-test sets outcome=success on success
+        if (result['outcome'] != "success"):
+            error = "Pig smoke-test failed"
+            amulet.raise_status(amulet.FAIL, msg=error)
 
 
 if __name__ == '__main__':
