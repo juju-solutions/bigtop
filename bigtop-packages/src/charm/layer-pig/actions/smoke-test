@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+import sys
+import subprocess
+
+from path import Path
+
+from charmhelpers.core import hookenv
+from jujubigdata.utils import run_as
+from charms.reactive import is_state
+
+
+def fail(msg, output):
+    hookenv.action_set({'output': output})
+    hookenv.action_fail(msg)
+    sys.exit()
+
+if not (is_state('pig.configured.local') or is_state('pig.configured.yarn')):
+    fail('Pig service not yet ready')
+
+
+def _run_pig_script(script, local=False):
+    Path('/tmp/test.pig').write_text(script)
+    args = ['-l', '/tmp/test.pig.log', '/tmp/test.pig']
+    if local:
+        args = ['-x', 'local'] + args
+    try:
+        run_as('ubuntu', 'pig', *args)
+    except subprocess.CalledProcessError as e:
+        fail('Pig command failed', e.output)
+
+
+if is_state('pig.configured.local'):
+    run_as('ubuntu', 'rm', '-R', '-f', '/tmp/test.pig.out')
+    script = ("A = load '/etc/passwd' using PigStorage(':'); "
+              "B = foreach A generate $0 as id; store B into '/tmp/test.pig.out';")
+    _run_pig_script(script, local=True)
+    output = run_as('ubuntu',
+                    'cat', '/tmp/test.pig.out/part-m-00000',
+                    capture_output=True)
+
+elif is_state('pig.configured.yarn'):
+    run_as('ubuntu', 'hdfs', 'dfs', '-rm', '-R', '-f', '/tmp/test.pig.out')
+    run_as('ubuntu', 'hdfs', 'dfs', '-copyFromLocal', '/etc/passwd',
+           '/user/ubuntu/test.pig.passwd')
+    script = ("A = load '/user/ubuntu/test.pig.passwd' using PigStorage(':'); "
+              "B = foreach A generate $0 as id; store B into '/tmp/test.pig.out';")
+    _run_pig_script(script, local=False)
+    output = run_as('ubuntu',
+                    'hdfs', 'dfs', '-cat', '/tmp/test.pig.out/part-m-00000',
+                    capture_output=True)
+
+if 'ubuntu' not in output:
+    fail('Unable to analyze passwd file with Pig', output)

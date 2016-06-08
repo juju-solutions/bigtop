@@ -1,0 +1,19 @@
+repo: git@github.com:juju-solutions/layer-apache-bigtop-kafka.git
+includes: 
+  - 'layer:hadoop-client'
+  - 'layer:apache-bigtop-base'
+options:
+  hadoop-client:
+    groups:
+      - 'hadoop'
+    dirs:
+      pig:
+        path: '/usr/lib/pig'
+      pig_conf:
+        path: '/etc/pig/conf'
+      hadoop_conf:
+        path: '/etc/hadoop/conf'
+    silent: True
+  apache-bigtop-base:
+    packages:
+      - default-jre-headless
