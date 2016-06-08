@@ -17,7 +17,7 @@ class TestDeploy(unittest.TestCase):
         self.d.add('hadoop-zookeeper', 'hadoop-zookeeper')
         self.d.setup(timeout=900)
         self.d.sentry.wait(timeout=1800)
-        self.unit = self.d.sentry['apache-zookeeper'][0]
+        self.unit = self.d.sentry['hadoop-zookeeper'][0]
 
 
 if __name__ == '__main__':

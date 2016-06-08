@@ -13,7 +13,9 @@ class TestDeploy(unittest.TestCase):
     def setUpClass(cls):
         cls.d = amulet.Deployment(series='trusty')
 
-        cls.d.add('zookeeper', charm='cs:trusty/hadoop-zookeeper', units=3)
+        cls.d.add('jdk', charm='openjdk')
+        cls.d.add('zookeeper', charm='hadoop-zookeeper', units=3)
+        cls.d.relate('zookeeper:java', 'jdk:java')
 
         cls.d.setup(timeout=900)
         cls.d.sentry.wait(timeout=1800)
