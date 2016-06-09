@@ -11,7 +11,7 @@ Deploy a Zookeeper unit. With only one unit, the service will be running in
 
     juju deploy openjdk
     juju deploy hadoop-zookeeper zookeeper
-    juju add-relation openjdk hadoop-zookeeper
+    juju add-relation openjdk zookeeper
 
 
 ## Scaling
@@ -25,13 +25,13 @@ Scaling Zookeeper to create a quorum is trivial. The following will add two
 additional Zookeeper units and will automatically configure them with knowledge
 of the other quorum members based on their peer relation to one another:
 
-    juju add-unit -n 2 hadoop-zookeeper
+    juju add-unit -n 2 zookeeper
 
 
 ## Test the deployment
 Test if the Zookeeper service is running by using the `zkServer.sh` script:
 
-    juju run --service=hadoop-zookeeper '/usr/lib/zookeeper/bin/zkServer.sh status'
+    juju run --service=zookeeper '/usr/lib/zookeeper/bin/zkServer.sh status'
 
 A successful deployment will report the service mode as either `standalone`
 (if only one Zookeeper unit has been deployed) or `leader` / `follower` (if
