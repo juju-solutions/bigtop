@@ -25,6 +25,16 @@ class TestDeploy(unittest.TestCase):
         output, retcode = self.unit.run("pgrep -a java")
         assert 'QuorumPeerMain' in output, "zookeeper QuorumPeerMain daemon is not started"
 
+    def test_quorum(self):
+        '''
+        Verify that our peers are talking to each other, and taking on
+        appropriate roles.
+
+        '''
+        output, retcode = self.unit.run("/usr/lib/zookeeper/bin/zkServer.sh status")
+        # Unit should be a leader or follower
+        self.assertTrue("leader" in output or "follower" in output)
+
 
 if __name__ == '__main__':
     unittest.main()
