@@ -10,7 +10,7 @@ Deploy a Zookeeper unit. With only one unit, the service will be running in
 `standalone` mode:
 
     juju deploy openjdk
-    juju deploy hadoop-zookeeper zookeeper
+    juju deploy zookeeper zookeeper
     juju add-relation openjdk zookeeper
 
 
@@ -42,7 +42,7 @@ a Zookeeper quorum has been formed).
 1) Add following lines to your charm's metadata.yaml:
 
     requires:
-      hadoop-zookeeper:
+      zookeeper:
          interface: zookeeper
 
 2) Add a `zookeeper-relation-changed` hook to your charm. Example contents:

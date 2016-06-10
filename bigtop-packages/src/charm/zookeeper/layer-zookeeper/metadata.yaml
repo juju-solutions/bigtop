@@ -1,4 +1,4 @@
-name: hadoop-zookeeper
+name: zookeeper
 maintainer: Juju Big Data <bigdata@lists.ubuntu.com>
 summary: High-performance coordination service for distributed applications
 description: |
