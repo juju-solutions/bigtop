@@ -191,7 +191,10 @@ class Zookeeper(object):
 
         '''
         node_count = len(self._read_peers())
-        count_str = "{} zk nodes".format(node_count)
+        if node_count == 1:
+            count_str = "{} zk node".format(node_count)
+        else:
+            count_str = "{} zk nodes".format(node_count)
         if node_count < 3:
             return " ({}; less than 3 nodes is suboptimal)".format(count_str)
         if node_count % 2 == 0:
