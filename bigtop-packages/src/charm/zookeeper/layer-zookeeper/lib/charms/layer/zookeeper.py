@@ -181,3 +181,19 @@ class Zookeeper(object):
         nodes = [format_node(*node) for node in node_list]
         peers = [peer for peer in peers if peer not in nodes]
         self._write_peers(peers)
+
+    def quorum_check(self):
+        '''
+        Returns a string reporting the node count. Append a message
+        informing the user if the node count is too low for good quorum,
+        or is even (meaning that one of the nodes is redundant for
+        quorum).
+
+        '''
+        node_count = len(self._read_peers())
+        count_str = "{} zk nodes".format(node_count)
+        if node_count < 3:
+            return " ({}; less than 3 nodes is suboptimal)".format(count_str)
+        if node_count % 2 == 0:
+            return " ({}; even number is suboptimal)".format(count_str)
+        return "({})".format(count_str)

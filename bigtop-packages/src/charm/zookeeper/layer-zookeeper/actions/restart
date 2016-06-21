@@ -28,8 +28,10 @@ LOG("starting restart handler.")
 def main():
     LOG("starting restart handler main.")
     hookenv.status_set('waiting', 'Restarting ...')
-    Zookeeper().install()
-    hookenv.status_set('active', 'Ready')
+    zookeeper = Zookeeper()
+    zookeeper.install()
+    hookenv.status_set('active', 'Ready {}'.format(zookeeper.quorum_check()))
+
 
 if __name__ == '__main__':
     main()
