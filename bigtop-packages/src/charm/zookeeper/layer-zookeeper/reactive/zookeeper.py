@@ -28,13 +28,13 @@ def install_zookeeper():
     puppet will start the service, as a side effect.
 
     '''
-    hookenv.status_set('waiting', 'Installing Zookeeper')
+    hookenv.status_set('waiting', 'installing zookeeper')
     zookeeper = Zookeeper()
     zookeeper.install()
     zookeeper.open_ports()
     set_state('zookeeper.installed')
     set_state('zookeeper.started')
-    hookenv.status_set('active', 'Ready')
+    hookenv.status_set('active', 'ready')
 
 
 @when('zookeeper.started', 'zkpeer.joined')
@@ -44,14 +44,14 @@ def add_node(zkpeer):
     Add the unit that just joined, restart Zookeeper, and remove the
     '.joined' state so we don't fall in here again (until another peer joins).
     """
-    hookenv.status_set('waiting', 'Configuring Zookeeper: adding nodes.')
+    hookenv.status_set('waiting', 'adding nodes to config')
     nodes = zkpeer.get_nodes()  # single node since we dismiss .joined below
     zookeeper = Zookeeper()
     zookeeper.add_nodes(nodes)
     zkpeer.dismiss_joined()
     hookenv.log("Added Zookeeper peer. You must manually perform a rolling "
                 "restart in order for the change to take effect.")
-    hookenv.status_set('active', 'New nodes added. Run the "restart" action to use them.')
+    hookenv.status_set('active', 'new nodes added to config -- run the "restart" action to use them')
 
 
 @when('zookeeper.started', 'zkpeer.departed')
@@ -61,7 +61,7 @@ def remove_node(zkpeer):
     Remove the unit that just departed, restart Zookeeper, and remove the
     '.departed' state so we don't fall in here again (until another peer leaves).
     """
-    hookenv.status_set('waiting', 'Configuring Zookeeper: removing nodes.')
+    hookenv.status_set('waiting', 'removing nodes from config')
     nodes = zkpeer.get_nodes()  # single node since we dismiss .departed below
     zookeeper = Zookeeper()
     zookeeper.remove_nodes(nodes)
@@ -69,7 +69,7 @@ def remove_node(zkpeer):
     hookenv.log("Removed Zookeeper peer. You must manually perform a rolling "
                 "restart in order for the change to take effect.")
     hookenv.status_set(
-        'active', 'Nodes have gone away. Run the "restart" action to update the cluster.')
+        'active', 'nodes have gone away -- run the "restart" action to update the cluster')
 
 
 @when('zookeeper.started', 'zkclient.joined')
