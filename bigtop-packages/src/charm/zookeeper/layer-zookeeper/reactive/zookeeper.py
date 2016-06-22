@@ -15,7 +15,7 @@
 
 from charmhelpers.core import hookenv
 from charms.layer.zookeeper import Zookeeper
-from charms.reactive import set_state, when, when_not
+from charms.reactive import set_state, when, when_not, when_any
 from charms.reactive.helpers import data_changed
 
 
@@ -47,8 +47,8 @@ def check_cluster():
 
     '''
     zk = Zookeeper()
-    nodes = zk.read_peers()
-    if data_changed('zkpeer.nodes', sorted(nodes)):
+    peers = zk.read_peers(include_this_machine=False)
+    if data_changed('zkpeer.nodes', sorted(peers)):
         if zk.is_zk_leader():
             note = ' (restart this node last)'
         else:

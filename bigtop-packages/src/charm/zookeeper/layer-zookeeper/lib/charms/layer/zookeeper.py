@@ -49,16 +49,25 @@ class Zookeeper(object):
 
     def is_zk_leader(self):
         '''
-        Determine whether this node is the Zookeepr leader.
+        Attempt to determine whether this node is the Zookeeper leader.
 
-        (Note that Zookeeper tracks leadership independently of juju.)
+        Note that Zookeeper tracks leadership independently of juju,
+        and that this command can fail, depending on the state that
+        the Zookeeper node is in when we attempt to run it.
 
         '''
-        status = subprocess.check_output(
-            ["/usr/lib/zookeeper/bin/zkServer.sh", "status"])
-        return "leader" in status.decode('utf-8')
+        try:
+            status = subprocess.check_output(
+                ["/usr/lib/zookeeper/bin/zkServer.sh", "status"])
+            return "leader" in status.decode('utf-8')
+        except Exception:
+            log(
+                "Unable to determine whether this node is the Zookeeper leader.",
+                level="WARN"
+            )
+            return False
 
-    def read_peers(self):
+    def read_peers(self, include_this_machine=True):
         '''
         Fetch the list of peers available.
 
@@ -70,8 +79,9 @@ class Zookeeper(object):
         zkpeer = RelationBase.from_state('zkpeer.joined')
         nodes = zkpeer.get_nodes() if zkpeer is not None else []
         nodes = [format_node(*node) for node in nodes]
-        # Insert this node into the list
-        nodes.insert(0, format_node(local_unit(), unit_private_ip()))
+        if include_this_machine:
+            # A Zookeeper node likes to be first on the list.
+            nodes.insert(0, format_node(local_unit(), unit_private_ip()))
 
         return nodes
 
