@@ -15,7 +15,7 @@
 
 from charmhelpers.core import hookenv
 from charms.layer.zookeeper import Zookeeper
-from charms.reactive import set_state, when, when_not, when_any
+from charms.reactive import set_state, when, when_not
 from charms.reactive.helpers import data_changed
 
 
