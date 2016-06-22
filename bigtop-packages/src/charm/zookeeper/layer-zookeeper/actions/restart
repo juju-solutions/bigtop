@@ -30,7 +30,7 @@ def main():
     hookenv.status_set('waiting', 'Restarting ...')
     zookeeper = Zookeeper()
     zookeeper.install()
-    hookenv.status_set('active', 'Ready {}'.format(zookeeper.quorum_check()))
+    hookenv.status_set('active', 'ready {}'.format(zookeeper.quorum_check()))
 
 
 if __name__ == '__main__':

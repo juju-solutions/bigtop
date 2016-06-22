@@ -34,7 +34,7 @@ def install_zookeeper():
     zookeeper.open_ports()
     set_state('zookeeper.installed')
     set_state('zookeeper.started')
-    hookenv.status_set('active', 'Ready {}'.format(zookeeper.quorum_check()))
+    hookenv.status_set('active', 'ready {}'.format(zookeeper.quorum_check()))
 
 
 @when('zookeeper.started', 'zkpeer.joined')
