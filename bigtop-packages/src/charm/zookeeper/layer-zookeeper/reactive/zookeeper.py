@@ -29,7 +29,7 @@ def install_zookeeper():
     puppet will start the service, as a side effect.
 
     '''
-    hookenv.status_set('waiting', 'installing zookeeper')
+    hookenv.status_set('maintenance', 'installing zookeeper')
     data_changed('zkpeer.nodes', [])  # Prime data changed
     zookeeper = Zookeeper()
     zookeeper.install()

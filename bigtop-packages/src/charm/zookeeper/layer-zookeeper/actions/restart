@@ -32,7 +32,7 @@ def main():
         return
 
     LOG("starting restart handler main.")
-    hookenv.status_set('waiting', 'Restarting ...')
+    hookenv.status_set('maintenance', 'restarting ...')
     zookeeper = Zookeeper()
     zookeeper.install()
     hookenv.status_set('active', 'ready {}'.format(zookeeper.quorum_check()))
