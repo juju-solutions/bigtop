@@ -13,15 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-import shutil
+import subprocess
 
 from charmhelpers.core import host
-from charms import layer
-from charms.layer.apache_bigtop_base import Bigtop
-from jujubigdata.utils import DistConfig
 from charmhelpers.core.hookenv import (open_port, close_port, log,
                                        unit_private_ip, local_unit)
+from charms import layer
+from charms.layer.apache_bigtop_base import Bigtop
+from charms.reactive.relations import RelationBase
+from jujubigdata.utils import DistConfig
 
 
 def format_node(unit, node_ip):
@@ -47,43 +47,33 @@ class Zookeeper(object):
         self._roles = ['zookeeper-server', 'zookeeper-client']
         self._hosts = {}
 
-    def _read_peers(self):
+    def is_zk_leader(self):
         '''
-        Read out the list of peers available.
+        Determine whether this node is the Zookeepr leader.
 
-        Typically, we do this before triggering puppet to update
-        zoo.cfg with a list of peers, usually because a peer has
-        joined or left.
+        (Note that Zookeeper tracks leadership independently of juju.)
+
+        '''
+        status = subprocess.check_output(
+            ["/usr/lib/zookeeper/bin/zkServer.sh", "status"])
+        return "leader" in status.decode('utf-8')
+
+    def read_peers(self):
+        '''
+        Fetch the list of peers available.
 
         The first item in this list should always be the node that
-        this code is executing on. We take care of that by writing the
-        node to the list of peers first, by default, before we ever
-        see another peer (see self._override), and then we are always
-        careful to preserve the order of the list thereafter.
+        this code is executing on.
 
         '''
-        with open("./resources/ensemble.json", "r") as ensemble_file:
-            peers = json.loads(ensemble_file.read())['ensemble']
-        if not peers:
-            this_node = format_node(local_unit(), unit_private_ip())
-            peers = [this_node]
+        # Get the list of peers
+        zkpeer = RelationBase.from_state('zkpeer.joined')
+        nodes = zkpeer.get_nodes() if zkpeer is not None else []
+        nodes = [format_node(*node) for node in nodes]
+        # Insert this node into the list
+        nodes.insert(0, format_node(local_unit(), unit_private_ip()))
 
-        return peers
-
-    def _write_peers(self, peers):
-        '''
-        Update the peer list for this peer.
-
-        '''
-        shutil.copyfile(
-            './resources/ensemble.json',
-            './resources/ensemble.bak'
-        )
-        with open("./resources/ensemble.json", "r") as ensemble_file:
-            content = json.loads(ensemble_file.read())
-        with open("./resources/ensemble.json", "w") as ensemble_file:
-            content['ensemble'] = peers
-            ensemble_file.write(json.dumps(content))
+        return nodes
 
     @property
     def dist_config(self):
@@ -102,12 +92,12 @@ class Zookeeper(object):
         '''
         override = {
             "hadoop_zookeeper::server::myid": local_unit().split("/")[1],
-            "hadoop_zookeeper::server::ensemble": self._read_peers()
+            "hadoop_zookeeper::server::ensemble": self.read_peers()
         }
 
         return override
 
-    def install(self):
+    def install(self, nodes=None):
         '''
         Write out the config, then run puppet.
 
@@ -115,7 +105,7 @@ class Zookeeper(object):
 
         '''
         bigtop = Bigtop()
-        log("Rendering site yaml with overrides: {}".format(self._override))
+        log("Rendering site yaml ''with overrides: {}".format(self._override))
         bigtop.render_site_yaml(self._hosts, self._roles, self._override)
         bigtop.trigger_puppet()
 
@@ -150,38 +140,6 @@ class Zookeeper(object):
         for port in self.dist_config.exposed_ports('zookeeper'):
             close_port(port)
 
-    def add_nodes(self, node_list):
-        '''
-        Add node(s).
-
-        Will stage a config update. For now, an ops person must
-        manually restart, with the restart action, for it to take
-        effect.
-
-        '''
-        peers = self._read_peers()
-        log("Adding a node. New node_list: {}".format(node_list))
-        nodes = [format_node(*node) for node in node_list]
-        for node in nodes:
-            if node not in peers:
-                peers.append(node)
-
-        self._write_peers(peers)
-
-    def remove_nodes(self, node_list):
-        '''
-        Remove node(s).
-
-        Will stage a config update. For now, an ops person must
-        manually restart, with the restart action, for it to take
-        effect.
-
-        '''
-        peers = self._read_peers()
-        nodes = [format_node(*node) for node in node_list]
-        peers = [peer for peer in peers if peer not in nodes]
-        self._write_peers(peers)
-
     def quorum_check(self):
         '''
         Returns a string reporting the node count. Append a message
@@ -190,7 +148,7 @@ class Zookeeper(object):
         quorum).
 
         '''
-        node_count = len(self._read_peers())
+        node_count = len(self.read_peers())
         if node_count == 1:
             count_str = "{} zk node".format(node_count)
         else:

@@ -16,6 +16,7 @@
 from charmhelpers.core import hookenv
 from charms.layer.zookeeper import Zookeeper
 from charms.reactive import set_state, when, when_not
+from charms.reactive.helpers import data_changed
 
 
 @when('bigtop.available')
@@ -29,6 +30,7 @@ def install_zookeeper():
 
     '''
     hookenv.status_set('waiting', 'installing zookeeper')
+    data_changed('zkpeer.nodes', [])  # Prime data changed
     zookeeper = Zookeeper()
     zookeeper.install()
     zookeeper.open_ports()
@@ -37,39 +39,25 @@ def install_zookeeper():
     hookenv.status_set('active', 'ready {}'.format(zookeeper.quorum_check()))
 
 
-@when('zookeeper.started', 'zkpeer.joined')
-def add_node(zkpeer):
-    """Add a zookeeper peer.
+@when('zookeeper.started')
+def check_cluster():
+    '''
+    Checkup on the state of the cluster. Inform an operator that they
+    need to restart if the peers have changed.
 
-    Add the unit that just joined, restart Zookeeper, and remove the
-    '.joined' state so we don't fall in here again (until another peer joins).
-    """
-    hookenv.status_set('waiting', 'adding nodes to config')
-    nodes = zkpeer.get_nodes()  # single node since we dismiss .joined below
-    zookeeper = Zookeeper()
-    zookeeper.add_nodes(nodes)
-    zkpeer.dismiss_joined()
-    hookenv.log("Added Zookeeper peer. You must manually perform a rolling "
-                "restart in order for the change to take effect.")
-    hookenv.status_set('active', 'new nodes added to config -- run the "restart" action to use them')
-
-
-@when('zookeeper.started', 'zkpeer.departed')
-def remove_node(zkpeer):
-    """Remove a zookeeper peer.
-
-    Remove the unit that just departed, restart Zookeeper, and remove the
-    '.departed' state so we don't fall in here again (until another peer leaves).
-    """
-    hookenv.status_set('waiting', 'removing nodes from config')
-    nodes = zkpeer.get_nodes()  # single node since we dismiss .departed below
-    zookeeper = Zookeeper()
-    zookeeper.remove_nodes(nodes)
-    zkpeer.dismiss_departed()
-    hookenv.log("Removed Zookeeper peer. You must manually perform a rolling "
-                "restart in order for the change to take effect.")
-    hookenv.status_set(
-        'active', 'nodes have gone away -- run the "restart" action to update the cluster')
+    '''
+    zk = Zookeeper()
+    nodes = zk.read_peers()
+    if data_changed('zkpeer.nodes', sorted(nodes)):
+        if zk.is_zk_leader():
+            note = ' (restart this node last)'
+        else:
+            note = ''
+        message = (
+            "number of zk peers has changed -- you must use "
+            "the 'restart' action to perform a rolling restart to "
+            "update your cluster{}".format(note))
+        hookenv.status_set('active', message)
 
 
 @when('zookeeper.started', 'zkclient.joined')

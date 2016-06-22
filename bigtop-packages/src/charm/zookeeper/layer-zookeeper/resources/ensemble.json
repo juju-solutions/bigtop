@@ -1,4 +1,0 @@
-{
-    "description": "This file tracks which Zookeeper nodes are running. The Charm will write out the list to /usr/lib/zookeeper/conf/zoo.cfg. Because this list is slightly different in each charm, manual editing is a bad idea -- it's best to let a running charm write to this list itself!",
-    "ensemble": []
-}
