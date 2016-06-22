@@ -30,8 +30,8 @@ def install_zookeeper():
 
     '''
     hookenv.status_set('maintenance', 'installing zookeeper')
-    data_changed('zkpeer.nodes', [])  # Prime data changed
     zookeeper = Zookeeper()
+    data_changed('zkpeer.nodes', zookeeper.read_peers())  # Prime data changed
     zookeeper.install()
     zookeeper.open_ports()
     set_state('zookeeper.installed')
@@ -47,8 +47,7 @@ def check_cluster():
 
     '''
     zk = Zookeeper()
-    peers = zk.read_peers(include_this_machine=False)
-    if data_changed('zkpeer.nodes', sorted(peers)):
+    if data_changed('zkpeer.nodes', zk.read_peers()):
         if zk.is_zk_leader():
             note = ' (restart this node last)'
         else:

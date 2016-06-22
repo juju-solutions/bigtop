@@ -67,7 +67,7 @@ class Zookeeper(object):
             )
             return False
 
-    def read_peers(self, include_this_machine=True):
+    def read_peers(self):
         '''
         Fetch the list of peers available.
 
@@ -75,14 +75,13 @@ class Zookeeper(object):
         this code is executing on.
 
         '''
+        # A Zookeeper node likes to be first on the list.
+        nodes = [(local_unit(), unit_private_ip())]
         # Get the list of peers
         zkpeer = RelationBase.from_state('zkpeer.joined')
-        nodes = zkpeer.get_nodes() if zkpeer is not None else []
+        if zkpeer:
+            nodes.extend(sorted(zkpeer.get_nodes()))
         nodes = [format_node(*node) for node in nodes]
-        if include_this_machine:
-            # A Zookeeper node likes to be first on the list.
-            nodes.insert(0, format_node(local_unit(), unit_private_ip()))
-
         return nodes
 
     @property
