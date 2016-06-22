@@ -166,5 +166,5 @@ class Zookeeper(object):
         if node_count < 3:
             return " ({}; less than 3 nodes is suboptimal)".format(count_str)
         if node_count % 2 == 0:
-            return " ({}; even number is suboptimal)".format(count_str)
+            return " ({}; an even number is suboptimal)".format(count_str)
         return "({})".format(count_str)
