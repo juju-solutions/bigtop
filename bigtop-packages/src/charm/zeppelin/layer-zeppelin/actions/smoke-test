@@ -36,7 +36,7 @@ if not is_state('zeppelin.installed'):
     fail('Zeppelin not yet ready')
 
 
-notebook_id = 'hdfs-tutorial'
+notebook_id = '2A94M5J1Z'
 zep_addr = 'localhost'
 base_url = 'http://{}:9080/api/notebook/'.format(zep_addr)
 interp_url = urljoin(base_url, 'interpreter/bind/%s' % notebook_id)
