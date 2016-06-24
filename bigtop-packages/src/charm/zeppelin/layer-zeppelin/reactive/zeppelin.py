@@ -16,7 +16,7 @@
 from charms.reactive import when, when_not
 from charms.reactive import is_state, set_state, remove_state
 from charmhelpers.core import hookenv
-from charms.layer.apache_zeppelin import Zeppelin
+from charms.layer.bigtop_zeppelin import Zeppelin
 
 
 @when('bigtop.available')
@@ -45,6 +45,8 @@ def initial_setup(hadoop):
     zeppelin.initial_zeppelin_config()
     zeppelin.copy_tutorial('flume-tutorial')
     zeppelin.copy_tutorial('hdfs-tutorial')
+    # restart to re-index the notebooks
+    zeppelin.restart()
     zeppelin.open_ports()
     set_state('zeppelin.installed')
     hookenv.status_set('active', 'ready')

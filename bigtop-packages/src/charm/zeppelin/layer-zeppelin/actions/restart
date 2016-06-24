@@ -20,7 +20,7 @@ sys.path.append('lib')
 
 from charmhelpers.core import hookenv
 from charms.reactive import is_state
-from charms.layer.apache_zeppelin import Zeppelin
+from charms.layer.bigtop_zeppelin import Zeppelin
 
 
 def fail(msg):
