@@ -67,6 +67,7 @@ def configure_kafka_zookeepers(zk):
 def stop_kafka_waiting_for_zookeeper_ready():
     hookenv.status_set('maintenance', 'zookeeper not ready, stopping kafka')
     kafka = Kafka()
+    kafka.close_ports()
     kafka.stop()
     remove_state('kafka.started')
     hookenv.status_set('waiting', 'waiting for zookeeper to become ready')
