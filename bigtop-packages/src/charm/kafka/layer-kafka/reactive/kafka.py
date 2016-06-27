@@ -39,6 +39,7 @@ def configure_kafka(zk):
     kafka = Kafka()
     zks = zk.zookeepers()
     kafka.configure_kafka(zks)
+    kafka.open_ports()
     set_state('kafka.started')
     hookenv.status_set('active', 'ready')
 
