@@ -23,21 +23,21 @@ from charms.layer.hadoop_client import get_dist_config
 @when('bigtop.available')
 @when_not('zookeeper.joined')
 def waiting_for_zookeeper():
-    hookenv.status_set('blocked', 'Waiting for relation to Zookeeper')
+    hookenv.status_set('blocked', 'waiting for relation to zookeeper')
     remove_state('hbase.installed')
 
 
 @when('bigtop.available', 'zookeeper.joined')
 @when_not('zookeeper.ready')
 def waiting_for_zookeeper_ready(zk):
-    hookenv.status_set('waiting', 'Waiting for Zookeeper to become ready')
+    hookenv.status_set('waiting', 'waiting for zookeeper to become ready')
     remove_state('hbase.installed')
 
 
 @when('bigtop.available', 'zookeeper.ready')
 @when_not('hadoop.hdfs.ready')
 def waiting_for_hdfs(zk):
-    hookenv.status_set('waiting', 'Waiting for HDFS')
+    hookenv.status_set('waiting', 'waiting for hdfs')
     remove_state('hbase.installed')
 
 
@@ -47,7 +47,7 @@ def installing_hbase(zk, hdfs):
     if is_state('hbase.installed') and (not data_changed('zks', zks)):
         return
 
-    msg = "Configuring HBase" if is_state('hbase.installed') else "Installing HBase"
+    msg = "configuring hbase" if is_state('hbase.installed') else "installing hbase"
     hookenv.status_set('waiting', msg)
     distcfg = get_dist_config()
     hbase = HBase(distcfg)
@@ -57,7 +57,7 @@ def installing_hbase(zk, hdfs):
     hosts['namenode'] = nns[0]
     hbase.configure(hosts, zks)
     set_state('hbase.installed')
-    hookenv.status_set('active', 'Ready')
+    hookenv.status_set('active', 'ready')
 
 
 @when('hbase.installed', 'hbclient.joined')
