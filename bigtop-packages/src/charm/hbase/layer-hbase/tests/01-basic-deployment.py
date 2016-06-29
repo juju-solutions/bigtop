@@ -30,7 +30,7 @@ class TestDeploy(unittest.TestCase):
         self.d.sentry.wait(timeout=1800)
 
     def test_deploy(self):
-        self.d.sentry.wait_for_messages({"hbase": "Waiting on relation to Java"})
+        self.d.sentry.wait_for_messages({"hbase": "waiting on relation to java"})
 
 
 if __name__ == '__main__':
