@@ -50,8 +50,8 @@ class TestDeploy(unittest.TestCase):
         self.d.sentry.wait_for_messages({"hbase": "ready"})
         hbase = self.d.sentry['hbase'][0]
         smk_uuid = hbase.action_do("smoke-test")
-        output = self.d.get_action_output(smk_uuid)
-        assert "Summary of timings" in output['meta']['raw']
+        output = self.d.action_fetch(smk_uuid, full_output=True)
+        assert "completed" in output['status']
 
 
 if __name__ == '__main__':

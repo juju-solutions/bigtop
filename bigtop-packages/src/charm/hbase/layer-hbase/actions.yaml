@@ -1,16 +1,18 @@
 start-hbase-master:
-    description: "	Start HBase HMaster."
+    description: Start HBase HMaster.
 start-hbase-regionserver:
-    description: "	Start HBase RegionServer."
+    description: Start HBase RegionServer.
 start-hbase:
-    description: "	Restart HBase HMaster/RegionServer."
+    description: Restart HBase HMaster/RegionServer.
 stop-hbase-master:
-    description: "	Stop HBase HMaster."
+    description: Stop HBase HMaster.
 stop-hbase-regionserver:
-    description: "	Stop HBase RegionServer."
+    description: Stop HBase RegionServer.
 stop-hbase:
-    description: "	Stop HBase HMaster/RegionServer."
+    description: Stop HBase HMaster/RegionServer.
 smoke-test:
+    description: Verify that HBase is working.
+perf-test:
     description: Verify that HBase is working by running a perf test.
     params:
         mrows:
