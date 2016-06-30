@@ -35,13 +35,13 @@ def report_status():
     mode = hookenv.config()['spark_execution_mode']
     if (not is_state('spark.yarn.installed')) and mode.startswith('yarn'):
         hookenv.status_set('blocked',
-                           'Yarn execution mode not available')
+                           'yarn execution mode not available')
         return
 
     if mode == 'standalone' and is_state('leadership.is_leader'):
         mode = mode + " - master"
 
-    hookenv.status_set('active', 'Ready ({})'.format(mode))
+    hookenv.status_set('active', 'ready ({})'.format(mode))
 
 
 def install_spark(hadoop=None):
@@ -66,7 +66,7 @@ def install_spark(hadoop=None):
 @when('bigtop.available')
 @when_not('spark.started')
 def first_install_spark():
-    hookenv.status_set('maintenance', 'Installing Apache Bitgop Spark')
+    hookenv.status_set('maintenance', 'installing apache bitgop spark')
     install_spark()
     set_deployment_mode_state('spark.standalone.installed')
     report_status()
@@ -77,7 +77,7 @@ def reconfigure_spark():
     config = hookenv.config()
     mode = config['spark_execution_mode']
     hookenv.status_set('maintenance',
-                       'Changing default execution mode to {}'.format(mode))
+                       'changing default execution mode to {}'.format(mode))
 
     hadoop = (RelationBase.from_state('hadoop.yarn.ready') or
               RelationBase.from_state('hadoop.hdfs.ready'))
@@ -105,7 +105,7 @@ def reinstall_spark():
     if not data_changed('deployment_matrix', deployment_matrix):
         return
 
-    hookenv.status_set('maintenance', 'Configuring Spark')
+    hookenv.status_set('maintenance', 'configuring spark')
     hadoop = (RelationBase.from_state('hadoop.yarn.ready') or
               RelationBase.from_state('hadoop.hdfs.ready'))
     install_spark(hadoop)

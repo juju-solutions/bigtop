@@ -20,15 +20,22 @@ import amulet
 
 class TestDeploy(unittest.TestCase):
     """
-    Trivial deployment test for Apache Spark.
+    Deployment and smoke-test of Apache Spark.
     """
-
-    def test_deploy(self):
+    def setUp(self):
         self.d = amulet.Deployment(series='trusty')
+        self.d.add('openjdk', 'openjdk')
         self.d.add('spark', 'spark')
+        self.d.relate('spark:java', 'openjdk:java')
         self.d.setup(timeout=900)
         self.d.sentry.wait(timeout=1800)
-        self.unit = self.d.sentry['spark'][0]
+
+    def test_deploy(self):
+        self.d.sentry.wait_for_messages({"spark": "ready (standalone - master)"})
+        spark = self.d.sentry['spark'][0]
+        smk_uuid = spark.action_do("smoke-test")
+        output = self.d.action_fetch(smk_uuid, full_output=True)
+        assert "completed" in output['status']
 
 
 if __name__ == '__main__':
