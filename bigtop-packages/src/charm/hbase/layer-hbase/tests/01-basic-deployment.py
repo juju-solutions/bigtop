@@ -15,8 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
 import amulet
+import re
+import unittest
 
 
 class TestDeploy(unittest.TestCase):
@@ -26,11 +27,16 @@ class TestDeploy(unittest.TestCase):
     def setUp(self):
         self.d = amulet.Deployment(series='trusty')
         self.d.add('hbase', 'hbase')
-        self.d.setup(timeout=900)
+        self.d.setup(timeout=1800)
         self.d.sentry.wait(timeout=1800)
 
     def test_deploy(self):
-        self.d.sentry.wait_for_messages({"hbase": "waiting on relation to java"})
+        # Our tests will reuse applications in an existing deployment. If
+        # we have already deployed hbase, it may be ready. If this is the
+        # first time we're deploying hbase, it will be waiting on java.
+        # Either message is acceptable for passing this test.
+        messages = re.compile('^ready|waiting on relation to java')
+        self.d.sentry.wait_for_messages({"hbase": messages})
 
 
 if __name__ == '__main__':
