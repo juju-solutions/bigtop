@@ -13,25 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from charmhelpers.core import hookenv
-from charmhelpers.core import unitdata
+from charmhelpers.core import hookenv, host
 from jujubigdata import utils
 from charms.layer.apache_bigtop_base import Bigtop
+from charms import layer
 
 
 class HBase(object):
-
-    def __init__(self, dist_config):
-        self.dist_config = dist_config
-
-    def setup(self):
-        self.open_ports()
+    """
+    This class manages HBase.
+    """
+    def __init__(self):
+        self.dist_config = utils.DistConfig(
+            data=layer.options('apache-bigtop-base'))
 
     def configure(self, hosts, zk_units):
-        if not unitdata.kv().get('hbase.bootstrapped', False):
-            self.setup()
-            unitdata.kv().set('hbase.bootstrapped', True)
-
         zks = []
         for unit in zk_units:
             ip = utils.resolve_private_address(unit['host'])
@@ -49,6 +45,20 @@ class HBase(object):
         bigtop = Bigtop()
         bigtop.render_site_yaml(hosts, roles, override)
         bigtop.trigger_puppet()
+
+    def restart(self):
+        self.stop()
+        self.start()
+
+    def start(self):
+        host.service_start('hbase-master')
+        host.service_start('hbase-regionserver')
+        host.service_start('hbase-thrift')
+
+    def stop(self):
+        host.service_stop('hbase-master')
+        host.service_stop('hbase-regionserver')
+        host.service_stop('hbase-thrift')
 
     def open_ports(self):
         for port in self.dist_config.exposed_ports('hbase'):
