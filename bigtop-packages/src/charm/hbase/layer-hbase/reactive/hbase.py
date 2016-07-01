@@ -13,32 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from charms.reactive import when, when_not, is_state, set_state, remove_state
+from charms.reactive import when, when_not_all, is_state, set_state, remove_state
 from charms.layer.bigtop_hbase import HBase
 from charmhelpers.core import hookenv
 from charms.reactive.helpers import data_changed
-from charms.layer.hadoop_client import get_dist_config
+from charms.layer.apache_bigtop_base import get_layer_opts
 
 
 @when('bigtop.available')
-@when_not('zookeeper.joined')
-def waiting_for_zookeeper():
-    hookenv.status_set('blocked', 'waiting for relation to zookeeper')
-    remove_state('hbase.installed')
-
-
-@when('bigtop.available', 'zookeeper.joined')
-@when_not('zookeeper.ready')
-def waiting_for_zookeeper_ready(zk):
-    hookenv.status_set('waiting', 'waiting for zookeeper to become ready')
-    remove_state('hbase.installed')
-
-
-@when('bigtop.available', 'zookeeper.ready')
-@when_not('hadoop.hdfs.ready')
-def waiting_for_hdfs(zk):
-    hookenv.status_set('waiting', 'waiting for hdfs')
-    remove_state('hbase.installed')
+def report_status():
+    hadoop_joined = is_state('hadoop.joined')
+    hdfs_ready = is_state('hadoop.hdfs.ready')
+    zk_joined = is_state('zookeeper.joined')
+    zk_ready = is_state('zookeeper.ready')
+    hbase_installed = is_state('hbase.installed')
+    if not hadoop_joined:
+        hookenv.status_set('blocked',
+                           'waiting for relation to hadoop plugin')
+    elif not hdfs_ready:
+        hookenv.status_set('waiting',
+                           'waiting for hdfs to become ready')
+    elif not zk_joined:
+        hookenv.status_set('blocked',
+                           'waiting for relation to zookeeper')
+    elif not zk_ready:
+        hookenv.status_set('waiting',
+                           'waiting for zookeeper to become ready')
+    elif hbase_installed:
+        hookenv.status_set('active',
+                           'ready')
 
 
 @when('bigtop.available', 'zookeeper.ready', 'hadoop.hdfs.ready')
@@ -48,21 +51,31 @@ def installing_hbase(zk, hdfs):
         return
 
     msg = "configuring hbase" if is_state('hbase.installed') else "installing hbase"
-    hookenv.status_set('waiting', msg)
-    distcfg = get_dist_config()
-    hbase = HBase(distcfg)
+    hookenv.status_set('maintenance', msg)
 
+    hbase = HBase()
     hosts = {}
     nns = hdfs.namenodes()
     hosts['namenode'] = nns[0]
     hbase.configure(hosts, zks)
+    hbase.open_ports()
     set_state('hbase.installed')
     hookenv.status_set('active', 'ready')
 
 
+@when('hbase.installed')
+@when_not_all('hadoop.hdfs.ready', 'zookeeper.ready')
+def stop_hbase():
+    hbase = HBase()
+    hbase.close_ports()
+    hbase.stop()
+    remove_state('hbase.installed')
+    report_status()
+
+
 @when('hbase.installed', 'hbclient.joined')
 def serve_client(client):
-    config = get_dist_config()
+    config = get_layer_opts()
     master_port = config.port('hbase-master')
     regionserver_port = config.port('hbase-region')
     thrift_port = config.port('hbase-thrift')
