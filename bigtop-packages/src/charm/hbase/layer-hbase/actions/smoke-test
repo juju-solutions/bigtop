@@ -18,7 +18,7 @@
 set -ex
 
 if ! charms.reactive is_state 'hbase.installed'; then
-    action-fail 'HBase not yet ready'
+    action-fail 'HBase is not yet ready'
     exit
 fi
 
@@ -39,10 +39,11 @@ hbase shell hbase_table.txt
 
 echo "describe '$tbl'" | hbase shell
 status=$?
-echo "The status was " $status
-if [ $status == 0 ]
-then
-    echo "The command succeeded"
+echo "HBase shell return code was: " $status
+
+if [ $status -eq 0 ]; then
+  action-set outcome="success"
 else
-    echo "The command may have failed."
+  action-set outcome="failed with return code ${status}"
+  action-fail "smoke-test failed"
 fi

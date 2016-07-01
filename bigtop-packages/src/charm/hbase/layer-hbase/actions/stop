@@ -16,27 +16,20 @@
 # limitations under the License.
 
 import sys
+sys.path.append('lib')
+
+from charmhelpers.core import hookenv
+from charms.reactive import is_state
+from charms.layer.bigtop_hbase import HBase
 
 
-try:
-    from charmhelpers.core import host, hookenv, unitdata
-    from jujubigdata import utils
-    charm_ready = True
-except ImportError:
-    charm_ready = False
+def fail(msg):
+    hookenv.action_fail(msg)
+    sys.exit()
 
-if not charm_ready:
-    from subprocess import call
-    call(['action-fail', 'HBase service not yet ready'])
-    sys.exit(1)
+if not is_state('hbase.installed'):
+    fail('HBase is not yet ready')
 
-if not host.service_available('hbase-regionserver') or \
-   not host.service_available('hbase-thrift') or \
-   not host.service_available('hbase-master'):
-    from subprocess import call
-    call(['action-fail', 'HBase not available'])
-    sys.exit(1)
-
-host.service_stop('hbase-master')
-host.service_stop('hbase-regionserver')
-host.service_stop('hbase-thrift')
+hb = HBase()
+hb.close_ports()
+hb.stop()

@@ -18,7 +18,7 @@
 set -ex
 
 if ! charms.reactive is_state 'hbase.installed'; then
-    action-fail 'HBase not yet ready'
+    action-fail 'HBase is not yet ready'
     exit
 fi
 
