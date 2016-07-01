@@ -1,3 +1,4 @@
+repo: git@github.com:juju-solutions/bigtop.git
 includes:
   - 'layer:apache-bigtop-base'
   - 'layer:hadoop-client'
@@ -5,7 +6,7 @@ includes:
   - 'interface:benchmark'
   - 'interface:hbase'
 options:
-  hadoop-client:
+  apache-bigtop-base:
     ports:
       # Ports that need to be exposed, overridden, or manually specified.
       # Only expose ports serving a UI or external API (i.e., namenode and
@@ -30,4 +31,5 @@ options:
       #hbase-rest:
       #  port: 8080
       #  exposed_on: 'hbase'
+  hadoop-client:
     silent: True
