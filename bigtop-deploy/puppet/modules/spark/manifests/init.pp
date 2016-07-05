@@ -137,6 +137,7 @@ class spark {
   class common(
       $master_url = 'yarn',
       $master_host = $fqdn,
+      $zookeeper_connection_string = undef,
       $master_port = 7077,
       $worker_port = 7078,
       $master_ui_port = 8080,
@@ -158,13 +159,24 @@ class spark {
       ensure => latest,
     }
 
+    if $zookeeper_connection_string {
+      $spark_daemon_java_opts = "\"-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=${zookeeper_connection_string}\""
+      $spark_env = "spark/spark-env.ha.sh"
+      $spark_defaults = "spark/spark-defaults.ha.conf"
+    }
+    else {
+      $spark_daemon_java_opts = "\"-Dspark.deploy.recoveryMode=NONE\""
+      $spark_env = "spark/spark-env.sh"
+      $spark_defaults = "spark/spark-defaults.conf"
+    }
+
     file { '/etc/spark/conf/spark-env.sh':
-      content => template('spark/spark-env.sh'),
+      content => template($spark_env),
       require => Package['spark-core'],
     }
 
     file { '/etc/spark/conf/spark-defaults.conf':
-      content => template('spark/spark-defaults.conf'),
+      content => template($spark_defaults),
       require => Package['spark-core'],
     }
 
