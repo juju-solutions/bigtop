@@ -16,9 +16,7 @@
 
 import amulet
 import time
-import yaml
 import unittest
-import os
 import requests
 
 
@@ -46,8 +44,8 @@ class TestDeployment(unittest.TestCase):
         Check that a new leader is elected.
         '''
         self.d.sentry.wait_for_messages({"sparkscale": ["ready (standalone - HA)",
-                                                   "ready (standalone - HA)",
-                                                   "ready (standalone - HA)"]}, timeout=900)
+                                                        "ready (standalone - HA)",
+                                                        "ready (standalone - HA)"]}, timeout=900)
         # Give some slack for the spark units to elect a master
         # time.sleep(60)
         master = ''
@@ -69,7 +67,7 @@ class TestDeployment(unittest.TestCase):
         time.sleep(120)
 
         self.d.sentry.wait_for_messages({"sparkscale": ["ready (standalone - HA)",
-                                                   "ready (standalone - HA)"]}, timeout=900)
+                                                        "ready (standalone - HA)"]}, timeout=900)
 
         masters_count = 0
         for unit in self.d.sentry['sparkscale']:

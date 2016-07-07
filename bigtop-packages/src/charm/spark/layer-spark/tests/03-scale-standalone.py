@@ -53,8 +53,6 @@ class TestScaleStandalone(unittest.TestCase):
         spark0_unit = self.d.sentry['sparkscale'][0]
         spark1_unit = self.d.sentry['sparkscale'][1]
         spark2_unit = self.d.sentry['sparkscale'][2]
-        ip1 = spark1_unit.info['public-address']
-        ip2 = spark2_unit.info['public-address']
         (stdout0, errcode0) = spark0_unit.run('grep spark.master /etc/spark/conf/spark-defaults.conf')
         (stdout1, errcode1) = spark1_unit.run('grep spark.master /etc/spark/conf/spark-defaults.conf')
         (stdout2, errcode2) = spark2_unit.run('grep spark.master /etc/spark/conf/spark-defaults.conf')

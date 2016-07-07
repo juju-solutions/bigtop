@@ -114,7 +114,6 @@ def reinstall_spark():
         # We need reconfigure Spark when in HA and peers change ignore otherwise
         peers = get_spark_peers()
 
-
     deployment_matrix = {
         'spark_master': spark_master_host,
         'yarn_ready': is_state('hadoop.yarn.ready'),
