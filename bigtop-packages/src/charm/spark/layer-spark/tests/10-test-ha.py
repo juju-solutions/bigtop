@@ -29,7 +29,7 @@ class TestDeployment(unittest.TestCase):
         cls.d = amulet.Deployment(series='trusty')
         cls.d.add('sparkscale', 'spark', units=3)
         cls.d.add('openjdk', 'openjdk')
-        cls.d.add('zk', 'apache-zookeeper', 'zk')
+        cls.d.add('zk', 'apache-zookeeper')
         cls.d.relate('openjdk:java', 'sparkscale:java')
         cls.d.relate('zk:zkclient', 'sparkscale:zookeeper')
         cls.d.setup(timeout=1800)
