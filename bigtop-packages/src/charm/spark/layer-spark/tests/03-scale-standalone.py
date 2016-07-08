@@ -62,9 +62,9 @@ class TestScaleStandalone(unittest.TestCase):
 
         master_name = ''
         for unit in self.d.sentry['sparkscale']:
-            (stdout, stderr) = unit.run("pgrep -f Master")
+            (stdout, stderr) = unit.run("pgrep -f \"[M]aster\"")
             lines = len(stdout.split('\n'))
-            if lines > 1:
+            if lines > 0:
                 master_name = unit.info['unit_name']
                 print("Killin master {}".format(master_name))
                 self.d.remove_unit(master_name)
