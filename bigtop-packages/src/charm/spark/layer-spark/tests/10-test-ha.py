@@ -25,17 +25,17 @@ class TestDeployment(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.d = amulet.Deployment(series='trusty')
-        cls.d.add('sparkscale', 'spark', units=3)
+        cls.d.add('sparkha', 'spark', units=3)
         cls.d.add('openjdk', 'openjdk')
         cls.d.add('zk', 'apache-zookeeper')
-        cls.d.relate('openjdk:java', 'sparkscale:java')
-        cls.d.relate('zk:zkclient', 'sparkscale:zookeeper')
+        cls.d.relate('openjdk:java', 'sparkha:java')
+        cls.d.relate('zk:zkclient', 'sparkha:zookeeper')
         cls.d.setup(timeout=1800)
         cls.d.sentry.wait(timeout=1800)
 
     @classmethod
     def tearDownClass(cls):
-        cls.d.remove_service('sparkscale')
+        cls.d.remove_service('sparkha')
 
     def test_master_selected(self):
         '''
@@ -43,14 +43,14 @@ class TestDeployment(unittest.TestCase):
         Remove the leader unit.
         Check that a new leader is elected.
         '''
-        self.d.sentry.wait_for_messages({"sparkscale": ["ready (standalone - HA)",
-                                                        "ready (standalone - HA)",
-                                                        "ready (standalone - HA)"]}, timeout=900)
+        self.d.sentry.wait_for_messages({"sparkha": ["ready (standalone - HA)",
+                                                     "ready (standalone - HA)",
+                                                     "ready (standalone - HA)"]}, timeout=900)
         # Give some slack for the spark units to elect a master
         # time.sleep(60)
         master = ''
         masters_count = 0
-        for unit in self.d.sentry['sparkscale']:
+        for unit in self.d.sentry['sparkha']:
             ip = unit.info['public-address']
             url = 'http://{}:8080'.format(ip)
             homepage = requests.get(url)
@@ -66,11 +66,11 @@ class TestDeployment(unittest.TestCase):
         self.d.remove_unit(master)
         time.sleep(120)
 
-        self.d.sentry.wait_for_messages({"sparkscale": ["ready (standalone - HA)",
-                                                        "ready (standalone - HA)"]}, timeout=900)
+        self.d.sentry.wait_for_messages({"sparkha": ["ready (standalone - HA)",
+                                                     "ready (standalone - HA)"]}, timeout=900)
 
         masters_count = 0
-        for unit in self.d.sentry['sparkscale']:
+        for unit in self.d.sentry['sparkha']:
             ip = unit.info['public-address']
             url = 'http://{}:8080'.format(ip)
             homepage = requests.get(url)
