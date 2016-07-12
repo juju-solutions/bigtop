@@ -127,12 +127,12 @@ class Zeppelin(object):
             r'jdbc:hive2:.*"': '%s"' % hive_connect,
         })
 
-    def configure_spark(self, spark=None):
+    def configure_spark(self, spark_connection_url=None):
         '''
         Configure the zeppelin spark interpreter
         '''
-        if spark:
-            spark_url = 'spark://%s:7077' % spark.get_private_ip()
+        if spark_connection_url:
+            spark_url = spark_connection_url
         else:
             spark_url = 'yarn-client'
 

@@ -17,6 +17,7 @@ from charms.reactive import when, when_not
 from charms.reactive import is_state, set_state, remove_state
 from charmhelpers.core import hookenv
 from charms.layer.bigtop_zeppelin import Zeppelin
+from charms.reactive.helpers import data_changed
 
 
 @when('bigtop.available')
@@ -55,33 +56,44 @@ def initial_setup(hadoop):
 @when('zeppelin.installed', 'hive.ready')
 @when_not('zeppelin.hive.configured')
 def configure_hive(hive):
+    hookenv.status_set('maintenance', 'configuring hive')
     zeppelin = Zeppelin()
     zeppelin.configure_hive(hive)
     set_state('zeppelin.hive.configured')
+    hookenv.status_set('active', 'ready')
 
 
 @when('zeppelin.installed', 'zeppelin.hive.configured')
 @when_not('hive.ready')
 def unconfigure_hive():
+    hookenv.status_set('maintenance', 'removing hive relation')
     zeppelin = Zeppelin()
     zeppelin.configure_hive(None)
     remove_state('zeppelin.hive.configured')
+    hookenv.status_set('active', 'ready')
 
 
 @when('zeppelin.installed', 'spark.ready')
-@when_not('zeppelin.spark.configured')
 def configure_spark(spark):
+    spark_connection_string = spark.get_master_info()['connection_string']
+    if not data_changed('spark_master_url', spark_connection_string):
+        return
+
+    hookenv.status_set('maintenance', 'configuring spark')
     zeppelin = Zeppelin()
-    zeppelin.configure_spark(spark)
+    zeppelin.configure_spark(spark_connection_string)
     set_state('zeppelin.spark.configured')
+    hookenv.status_set('active', 'ready')
 
 
 @when('zeppelin.installed', 'zeppelin.spark.configured')
 @when_not('spark.ready')
 def unconfigure_spark():
+    hookenv.status_set('maintenance', 'removing spark relation')
     zeppelin = Zeppelin()
     zeppelin.configure_spark(None)
     remove_state('zeppelin.spark.configured')
+    hookenv.status_set('active', 'ready')
 
 
 @when('zeppelin.installed')
