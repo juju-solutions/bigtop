@@ -33,9 +33,19 @@ class TestDeploy(unittest.TestCase):
         cls.d.configure('openjdk', {'java-type': 'jdk',
                                     'java-major': '8'})
 
-        cls.d.relate('kafka:zookeeper', 'zk:zkclient')
+        try:
+            cls.d.relate('kafka:zookeeper', 'zk:zkclient')
+        except ValueError:
+            # Depending on the zookeeper we're deploying, it may or
+            # may not support the zkclient relation.
+            cls.d.relate('kafka:zookeeper', 'zk:zookeeper')
         cls.d.relate('kafka:java', 'openjdk:java')
-        cls.d.relate('zk:java', 'openjdk:java')
+        try:
+            cls.d.relate('zk:java', 'openjdk:java')
+        except ValueError:
+            # No need to related older versions of the zookeeper charm
+            # to java.
+            pass
 
         cls.d.setup(timeout=900)
         cls.d.sentry.wait_for_messages({'kafka': 'ready'}, timeout=1800)
