@@ -59,7 +59,7 @@ def check_cluster():
         hookenv.status_set('active', message)
 
 
-@when('zookeeper.started', 'zkclient.joined')
+@when('zookeeper.started', 'zookeeper.joined')
 def serve_client(client):
     config = Zookeeper().dist_config
     port = config.port('zookeeper')
