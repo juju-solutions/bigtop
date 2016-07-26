@@ -26,7 +26,7 @@ class TestDeploy(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.d = amulet.Deployment(series='trusty')
+        cls.d = amulet.Deployment(series='xenial')
 
         cls.d.add('jdk', charm='openjdk')
         cls.d.add('zookeeper', charm='zookeeper', units=3)

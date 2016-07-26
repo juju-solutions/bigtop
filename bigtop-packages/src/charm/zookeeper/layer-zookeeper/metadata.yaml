@@ -1,4 +1,5 @@
 name: zookeeper
+series: [xenial]
 maintainer: Juju Big Data <bigdata@lists.ubuntu.com>
 summary: High-performance coordination service for distributed applications
 description: |
@@ -10,7 +11,7 @@ description: |
   components, you must start the ZooKeeper service.
 tags: ["bigdata", "hadoop", "apache"]
 provides:
-  zkclient:
+  zookeeper:
     interface: zookeeper
 peers:
   zkpeer:

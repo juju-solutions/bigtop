@@ -17,7 +17,7 @@ import subprocess
 
 from charmhelpers.core import host
 from charmhelpers.core.hookenv import (open_port, close_port, log,
-                                       unit_private_ip, local_unit)
+                                       unit_private_ip, local_unit, config)
 from charms import layer
 from charms.layer.apache_bigtop_base import Bigtop
 from charms.reactive.relations import RelationBase
@@ -103,6 +103,10 @@ class Zookeeper(object):
             "hadoop_zookeeper::server::myid": local_unit().split("/")[1],
             "hadoop_zookeeper::server::ensemble": self.read_peers()
         }
+        bind_addr = config().get('client_bind_addr')
+        if bind_addr:
+            key = "hadoop_zookeeper::server::client_bind_addr"
+            override[key] = bind_addr
 
         return override
 
