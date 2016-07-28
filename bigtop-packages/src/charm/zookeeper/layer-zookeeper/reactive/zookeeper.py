@@ -31,12 +31,32 @@ def install_zookeeper():
     '''
     hookenv.status_set('maintenance', 'installing zookeeper')
     zookeeper = Zookeeper()
-    data_changed('zkpeer.nodes', zookeeper.read_peers())  # Prime data changed
+    # Prime data changed
+    data_changed('zkpeer.nodes', zookeeper.read_peers())
+    data_changed(
+        'zk.network_interface',
+        hookenv.config().get('network_interface'))
     zookeeper.install()
     zookeeper.open_ports()
     set_state('zookeeper.installed')
     set_state('zookeeper.started')
     hookenv.status_set('active', 'ready {}'.format(zookeeper.quorum_check()))
+
+
+@when('zookeeper.started')
+def update_network_interface():
+    '''
+    Possibly restart zookeeper, due to the network interface that it
+    should listen on changing.
+
+    '''
+    network_interface = hookenv.config().get('network_interface')
+    if data_changed('zk.network_interface', network_interface):
+        hookenv.status_set('maintenance', 'updating network interface')
+        zookeeper = Zookeeper()
+        zookeeper.install()
+        hookenv.status_set(
+            'active', 'ready {}'.format(zookeeper.quorum_check()))
 
 
 @when('zookeeper.started')

@@ -103,10 +103,10 @@ class Zookeeper(object):
             "hadoop_zookeeper::server::myid": local_unit().split("/")[1],
             "hadoop_zookeeper::server::ensemble": self.read_peers()
         }
-        bind_addr = config().get('client_bind_addr')
-        if bind_addr:
+        network_interface = config().get('network_interface')
+        if network_interface:
             key = "hadoop_zookeeper::server::client_bind_addr"
-            override[key] = bind_addr
+            override[key] = Bigtop().get_ip_for_interface(network_interface)
 
         return override
 

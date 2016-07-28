@@ -1,7 +1,10 @@
 options:
-  client_bind_addr:
+  network_interface:
     default: ""
     type: string
     description: |
-      IP address of the interface to listen for clients on, if something
-      other than the default is desired.
+      Network interface to bind the Zookeeper client port to. Defaults
+      to accepting connections on all interfaces. Accepts either the
+      name of an interface (e.g., 'eth0'), or a CIDR range. If the
+      latter, we\'ll bind to the first interface that we find with an
+      IP address in that range.
