@@ -54,6 +54,37 @@ The following commands will add two new nodes to a cluster:
 automating the restart process in the future.)
 
 
+## Network Interfaces
+
+In some network environments, you may want to restrict your Zookeepers
+to listen for client connections on a specific network interface (for
+example, for security reasons). To do so, you may pass either a
+network interface name or a CIDR range specifying a subnet to the
+``network_interface`` configuration variable. For example:
+
+  juju set-config zookeeper network_interface=eth0
+
+or
+
+  juju set-config zookeeper network_interface=10.0.2.0/24
+
+Each Zookeeper machine in your cluster will lookup the IP address of that
+network interface, or find the first network interface with an IP
+address in the specified subnet, and bind Zookeeper to that address.
+
+If you make a mistake, and pass an invalid name for a network
+interface, you may recover by passing the correct name to set-config,
+and then running "juju resolved" on each unit:
+
+  juju set-config zookeeper network_interface=eth0
+  juju resolved zookeeper/0
+
+If you want to go back to listening on any network interface on the
+machine, simply pass ``0.0.0.0`` to ``network_interface``.
+
+  juju set-config zookeeper network_interface=0.0.0.0
+
+
 ## Test the deployment
 Test if the Zookeeper service is running by using the `zkServer.sh` script:
 
