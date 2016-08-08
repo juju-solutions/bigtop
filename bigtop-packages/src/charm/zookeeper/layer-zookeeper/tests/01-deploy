@@ -64,9 +64,14 @@ class TestDeploy(unittest.TestCase):
         '''
         Run smoke tests.
         '''
-        for unit in self.d.sentry['zookeeper']:
-            unit.action_do("smoke-test")
+        smk_uuids = []
 
+        for unit in self.d.sentry['zookeeper']:
+            smk_uuids.append(unit.action_do("smoke-test"))
+
+        for smk_uuid in smk_uuids:
+            output = self.d.action_fetch(smk_uuid, full_output=True)
+            assert "completed" in output['status']
 
 if __name__ == '__main__':
     unittest.main()
