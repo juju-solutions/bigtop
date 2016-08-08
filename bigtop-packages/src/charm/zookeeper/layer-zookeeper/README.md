@@ -77,7 +77,7 @@ interface, you may recover by passing the correct name to set-config,
 and then running "juju resolved" on each unit:
 
   juju set-config zookeeper network_interface=eth0
-  juju resolved zookeeper/0
+  juju resolved -r zookeeper/0
 
 If you want to go back to listening on any network interface on the
 machine, simply pass ``0.0.0.0`` to ``network_interface``.
