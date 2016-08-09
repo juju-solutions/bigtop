@@ -140,7 +140,7 @@ class Spark(object):
         roles = self.get_roles()
 
         override = {
-            'spark::common::master_url': master_ip,
+            'spark::common::master_url': self.get_master_url(master_ip),
             'spark::common::event_log_dir': events_log_dir,
             'spark::common::history_log_dir': events_log_dir,
         }
@@ -169,6 +169,44 @@ class Spark(object):
         if 'namenode' not in available_hosts:
             # Make sure users other than spark can access the events logs dir and run jobs
             utils.run_as('root', 'chmod', '777', dc.path('spark_events'))
+
+        self.patch_worker_master_url(master_ip)
+
+    def patch_worker_master_url(self, master_ip):
+        '''
+        Patch the worker startup script to use the full master url istead of contracting it.
+        The master url is placed in the spark-env.sh so that the startup script will use it.
+        In HA mode the master_ip is set to be the local_ip instead of the one the leader
+        elects. This requires a restart of the master service.
+        '''
+        master_url = self.get_master_url(master_ip)
+        zk_units = unitdata.kv().get('zookeeper.units', [])
+        if master_url.startswith('spark://'):
+            if zk_units:
+                master_ip = hookenv.unit_private_ip()
+            spark_env = '/etc/spark/conf/spark-env.sh'
+            utils.re_edit_in_place(spark_env, {
+                r'.*SPARK_MASTER_URL.*': "export SPARK_MASTER_URL={}".format(master_url),
+                r'.*SPARK_MASTER_IP.*': "export SPARK_MASTER_IP={}".format(master_ip),
+            }, append_non_matches=True)
+
+            self.inplace_change('/etc/init.d/spark-worker',
+                                'spark://$SPARK_MASTER_IP:$SPARK_MASTER_PORT',
+                                '$SPARK_MASTER_URL')
+            host.service_restart('spark-master')
+            host.service_restart('spark-worker')
+
+    def inplace_change(self, filename, old_string, new_string):
+        # Safely read the input filename using 'with'
+        with open(filename) as f:
+            s = f.read()
+            if old_string not in s:
+                return
+
+        # Safely write the changed content, if found in the file
+        with open(filename, 'w') as f:
+            s = s.replace(old_string, new_string)
+            f.write(s)
 
     def install_demo(self):
         '''

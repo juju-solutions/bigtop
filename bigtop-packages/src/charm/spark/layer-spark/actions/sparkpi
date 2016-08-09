@@ -55,10 +55,7 @@ def main():
     bench.start()
     start = int(time())
 
-    master_ip = utils.resolve_private_address(hookenv.unit_private_ip())
-    master_url = Spark(get_dist_config()).get_master_url(master_ip)
-
-    hookenv.log("values: {} {} {}".format(master_url, num_partitions, result_log))
+    hookenv.log("values: {} {}".format(num_partitions, result_log))
 
     print('calculating pi')
 
@@ -67,8 +64,6 @@ def main():
             'spark-submit',
             '--class',
             'org.apache.spark.examples.SparkPi',
-            '--master',
-            master_url,
             '/usr/lib/spark/lib/spark-examples.jar'
         ]
         if num_partitions:

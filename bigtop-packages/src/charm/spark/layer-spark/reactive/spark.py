@@ -18,8 +18,8 @@ from charms.layer.bigtop_spark import Spark
 from charmhelpers.core import hookenv
 from charms import leadership
 from charms.reactive.helpers import data_changed
-from charms.layer.hadoop_client import get_dist_config
 from jujubigdata import utils
+from charms import layer
 
 
 def set_deployment_mode_state(state):
@@ -50,7 +50,8 @@ def report_status():
 def install_spark(hadoop=None, zks=None):
     spark_master_host = leadership.leader_get('master-fqdn')
     if not spark_master_host:
-        return
+        hookenv.status_set('waiting', 'master not elected yet')
+        return False
 
     hosts = {
         'spark-master': spark_master_host,
@@ -64,18 +65,10 @@ def install_spark(hadoop=None, zks=None):
         nns = hadoop.namenodes()
         hosts['namenode'] = nns[0]
 
-    dist = get_dist_config()
+    dist = utils.DistConfig(data=layer.options('hadoop-client'))
     spark = Spark(dist)
     spark.configure(hosts, zks, get_spark_peers())
-
-
-@when('bigtop.available')
-@when_not('spark.started')
-def first_install_spark():
-    hookenv.status_set('maintenance', 'installing apache bitgop spark')
-    install_spark()
-    set_deployment_mode_state('spark.standalone.installed')
-    report_status()
+    return True
 
 
 @when('config.changed', 'spark.started')
@@ -92,8 +85,8 @@ def reconfigure_spark():
         zk = RelationBase.from_state('zookeeper.ready')
         zks = zk.zookeepers()
 
-    install_spark(hadoop, zks)
-    report_status()
+    if install_spark(hadoop, zks):
+        report_status()
 
 
 # This is a triky call. We want to fire when the leader changes, yarn and hdfs become ready or
@@ -102,9 +95,9 @@ def reconfigure_spark():
 # we fire this method always ('spark.started'). We then build a deployment-matrix
 # and if anything has changed we re-install.
 # 'hadoop.yarn.ready', 'hadoop.hdfs.ready' can be ommited but I like them here for clarity
-@when_any('leadership.changed.master-fqdn', 'hadoop.yarn.ready',
-          'hadoop.hdfs.ready', 'spark.started', 'zookeeper.ready')
-@when('bigtop.available')
+@when_any('hadoop.yarn.ready',
+          'hadoop.hdfs.ready', 'master.elected', 'sparkpeers.joined', 'zookeeper.ready')
+@when('bigtop.available', 'master.elected')
 def reinstall_spark():
     spark_master_host = leadership.leader_get('master-fqdn')
     peers = []
@@ -132,13 +125,13 @@ def reinstall_spark():
     hookenv.status_set('maintenance', 'configuring spark')
     hadoop = (RelationBase.from_state('hadoop.yarn.ready') or
               RelationBase.from_state('hadoop.hdfs.ready'))
-    install_spark(hadoop, zks)
-    if is_state('hadoop.yarn.ready'):
-        set_deployment_mode_state('spark.yarn.installed')
-    else:
-        set_deployment_mode_state('spark.standalone.installed')
+    if install_spark(hadoop, zks):
+        if is_state('hadoop.yarn.ready'):
+            set_deployment_mode_state('spark.yarn.installed')
+        else:
+            set_deployment_mode_state('spark.standalone.installed')
 
-    report_status()
+        report_status()
 
 
 def get_spark_peers():
@@ -156,11 +149,16 @@ def send_fqdn():
     hookenv.log("Setting leader to {}".format(spark_master_host))
 
 
+@when('leadership.changed.master-fqdn')
+def leader_elected():
+    set_state("master.elected")
+
+
 @when('spark.started', 'client.joined')
 def client_present(client):
     if is_state('leadership.is_leader'):
         client.set_spark_started()
-        dist = get_dist_config()
+        dist = utils.DistConfig(data=layer.options('hadoop-client'))
         spark = Spark(dist)
         master_ip = utils.resolve_private_address(hookenv.unit_private_ip())
         master_url = spark.get_master_url(master_ip)

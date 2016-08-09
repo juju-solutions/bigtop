@@ -27,9 +27,16 @@ class TestDeployment(unittest.TestCase):
         cls.d = amulet.Deployment(series='trusty')
         cls.d.add('sparkha', 'spark', units=3)
         cls.d.add('openjdk', 'openjdk')
-        cls.d.add('zk', 'apache-zookeeper')
+        cls.d.add('zk', 'zookeeper')
+        cls.d.expose('sparkha')
         cls.d.relate('openjdk:java', 'sparkha:java')
-        cls.d.relate('zk:zkclient', 'sparkha:zookeeper')
+        cls.d.relate('zk:zookeeper', 'sparkha:zookeeper')
+        try:
+            cls.d.relate('zk:java', 'openjdk:java')
+        except ValueError:
+            # No need to related older versions of the zookeeper charm
+            # to java.
+            pass
         cls.d.setup(timeout=1800)
         cls.d.sentry.wait(timeout=1800)
 
@@ -47,7 +54,7 @@ class TestDeployment(unittest.TestCase):
                                                      "ready (standalone - HA)",
                                                      "ready (standalone - HA)"]}, timeout=900)
         # Give some slack for the spark units to elect a master
-        # time.sleep(60)
+        time.sleep(60)
         master = ''
         masters_count = 0
         for unit in self.d.sentry['sparkha']:
