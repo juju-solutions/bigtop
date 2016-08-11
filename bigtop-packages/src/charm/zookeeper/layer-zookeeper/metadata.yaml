@@ -1,5 +1,4 @@
 name: zookeeper
-series: [xenial]
 maintainer: Juju Big Data <bigdata@lists.ubuntu.com>
 summary: High-performance coordination service for distributed applications
 description: |
@@ -16,3 +15,4 @@ provides:
 peers:
   zkpeer:
     interface: zookeeper-quorum
+series: ["xenial"]

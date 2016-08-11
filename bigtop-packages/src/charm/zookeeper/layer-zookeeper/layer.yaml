@@ -1,3 +1,4 @@
+repo: git@github.com:juju-solutions/bigtop.git
 includes:
   - 'layer:apache-bigtop-base'
   - 'interface:zookeeper-quorum'
