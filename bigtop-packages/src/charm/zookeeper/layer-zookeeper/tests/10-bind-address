@@ -58,12 +58,13 @@ class TestBindClientPort(unittest.TestCase):
         output = self.d.action_fetch(smk_uuid, full_output=True)
         assert "completed" in output['status']
 
+    @unittest.skip(
+        'Broken handling of 0.0.0.0 bindings upstream, in Zookeeper project.')
     def test_reset_bindings(self):
         """
         Verify that we can reset the client port bindings to 0.0.0.0
 
         """
-        return
         self.d.configure('zookeeper', {'network_interface': '0.0.0.0'})
         self.d.sentry.wait_for_messages({'zookeeper': 'updating network interface'}, timeout=60)
         self.d.sentry.wait_for_messages({'zookeeper': 'ready (3 zk nodes)'}, timeout=60)
