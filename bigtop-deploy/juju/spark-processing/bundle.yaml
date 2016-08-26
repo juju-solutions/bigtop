@@ -1,0 +1,54 @@
+services:
+  openjdk:
+    charm: cs:trusty/openjdk-4
+    annotations:
+      gui-x: "125"
+      gui-y: "375"
+    options:
+      java-type: "jdk"
+      java-major: "8"
+  zookeeper:
+    charm: cs:trusty/zookeeper-1
+    num_units: 3
+    annotations:
+      gui-x: "0"
+      gui-y: "200"
+  spark:
+    charm: cs:trusty/spark-1
+    num_units: 3
+    annotations:
+      gui-x: "250"
+      gui-y: "200"
+    constraints: mem=3G
+  topbeat:
+    charm: cs:trusty/topbeat-2
+    annotations:
+      gui-x: "500"
+      gui-y: "125"
+  filebeat:
+    charm: cs:trusty/filebeat-2
+    annotations:
+      gui-x: "500"
+      gui-y: "375"
+  elasticsearch:
+    charm: cs:trusty/elasticsearch-15
+    num_units: 1
+    annotations:
+      gui-x: "750"
+      gui-y: "200"
+  kibana:
+    charm: cs:trusty/kibana-14
+    num_units: 1
+    expose: true
+    annotations:
+      gui-x: "1000"
+      gui-y: "200"
+series: trusty
+relations:
+  - [spark, openjdk]
+  - [spark, zookeeper]
+  - ["kibana:rest", "elasticsearch:client"]
+  - ["filebeat:elasticsearch", "elasticsearch:client"]
+  - ["filebeat:beats-host", "spark:juju-info"]
+  - ["topbeat:elasticsearch", "elasticsearch:client"]
+  - ["topbeat:beats-host", "spark:juju-info"]
