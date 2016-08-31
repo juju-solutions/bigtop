@@ -19,6 +19,9 @@ import unittest
 import amulet
 import re
 
+DEPLOY_TIMEOUT = 1800
+CONFIG_TIMEOUT = 900
+
 
 class TestBindClientPort(unittest.TestCase):
     """
@@ -32,8 +35,8 @@ class TestBindClientPort(unittest.TestCase):
 
         cls.d.add('zookeeper', charm='zookeeper', units=3)
 
-        cls.d.setup(timeout=900)
-        cls.d.sentry.wait(timeout=1800)
+        cls.d.setup(timeout=CONFIG_TIMEOUT)
+        cls.d.sentry.wait(timeout=DEPLOY_TIMEOUT)
         cls.unit = cls.d.sentry['zookeeper'][0]
 
     def test_bind_port(self):
@@ -42,8 +45,8 @@ class TestBindClientPort(unittest.TestCase):
 
         """
         self.d.configure('zookeeper', {'network_interface': 'eth0'})
-        self.d.sentry.wait_for_messages({'zookeeper': 'updating network interface'}, timeout=60)
-        self.d.sentry.wait_for_messages({'zookeeper': 'ready (3 zk nodes)'}, timeout=60)
+        self.d.sentry.wait_for_messages({'zookeeper': 'updating network interface'}, timeout=CONFIG_TIMEOUT)
+        self.d.sentry.wait_for_messages({'zookeeper': 'ready (3 zk nodes)'}, timeout=CONFIG_TIMEOUT)
         ret = self.unit.run(
             'grep clientPortAddress /etc/zookeeper/conf/zoo.cfg')[0]
         matcher = re.compile(
@@ -64,8 +67,8 @@ class TestBindClientPort(unittest.TestCase):
 
         """
         self.d.configure('zookeeper', {'network_interface': '0.0.0.0'})
-        self.d.sentry.wait_for_messages({'zookeeper': 'updating network interface'}, timeout=60)
-        self.d.sentry.wait_for_messages({'zookeeper': 'ready (3 zk nodes)'}, timeout=60)
+        self.d.sentry.wait_for_messages({'zookeeper': 'updating network interface'}, timeout=CONFIG_TIMEOUT)
+        self.d.sentry.wait_for_messages({'zookeeper': 'ready (3 zk nodes)'}, timeout=CONFIG_TIMEOUT)
         ret = self.unit.run(
             'grep clientPortAddress /etc/zookeeper/conf/zoo.cfg')[0]
 
