@@ -16,8 +16,8 @@
 # limitations under the License.
 
 import unittest
-import amulet
 import re
+import amulet
 
 DEPLOY_TIMEOUT = 1800
 CONFIG_TIMEOUT = 900
@@ -44,9 +44,29 @@ class TestBindClientPort(unittest.TestCase):
         Test to verify that we update client port bindings successfully.
 
         """
-        self.d.configure('zookeeper', {'network_interface': 'eth0'})
-        self.d.sentry.wait_for_messages({'zookeeper': 'updating network interface'}, timeout=CONFIG_TIMEOUT)
-        self.d.sentry.wait_for_messages({'zookeeper': 'ready (3 zk nodes)'}, timeout=CONFIG_TIMEOUT)
+        network_interface = None
+        # Regular expression should handle interfaces in the format
+        # eth[n], and in the format en[foo] (the "predicatble
+        # interface names" in v197+ of systemd).
+        ethernet_interface = re.compile('^e[thn]+.*')
+        interfaces, _ = self.unit.run(
+            "ifconfig -a | sed 's/[ \t].*//;/^$/d'")
+        interfaces = interfaces.split()  # Splits on newlines
+        for interface in interfaces:
+            if ethernet_interface.match(interface):
+                network_interface = interface
+                break
+
+        if network_interface is None:
+            raise Exception(
+                "Could not find any interface on the unit that matched my "
+                "criteria.")
+
+        self.d.configure('zookeeper', {'network_interface': network_interface})
+        self.d.sentry.wait_for_messages(
+            {'zookeeper': 'updating network interface'}, timeout=CONFIG_TIMEOUT)
+        self.d.sentry.wait_for_messages(
+            {'zookeeper': 'ready (3 zk nodes)'}, timeout=CONFIG_TIMEOUT)
         ret = self.unit.run(
             'grep clientPortAddress /etc/zookeeper/conf/zoo.cfg')[0]
         matcher = re.compile(
@@ -67,8 +87,10 @@ class TestBindClientPort(unittest.TestCase):
 
         """
         self.d.configure('zookeeper', {'network_interface': '0.0.0.0'})
-        self.d.sentry.wait_for_messages({'zookeeper': 'updating network interface'}, timeout=CONFIG_TIMEOUT)
-        self.d.sentry.wait_for_messages({'zookeeper': 'ready (3 zk nodes)'}, timeout=CONFIG_TIMEOUT)
+        self.d.sentry.wait_for_messages(
+            {'zookeeper': 'updating network interface'}, timeout=CONFIG_TIMEOUT)
+        self.d.sentry.wait_for_messages(
+            {'zookeeper': 'ready (3 zk nodes)'}, timeout=CONFIG_TIMEOUT)
         ret = self.unit.run(
             'grep clientPortAddress /etc/zookeeper/conf/zoo.cfg')[0]
 
