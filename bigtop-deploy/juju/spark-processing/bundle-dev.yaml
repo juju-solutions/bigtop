@@ -1,55 +1,52 @@
 services:
-  openjdk:
-    charm: cs:trusty/openjdk
+  spark:
+    charm: "cs:~bigdata-dev/xenial/spark"
+    num_units: 3
     annotations:
-      gui-x: "125"
-      gui-y: "375"
+      gui-x: "500"
+      gui-y: "0"
+    constraints: mem=7G
+  zookeeper:
+    charm: "cs:trusty/apache-zookeeper-3"
+    num_units: 3
+    annotations:
+      gui-x: "500"
+      gui-y: "800"
+  ganglia:
+    charm: "cs:trusty/ganglia-2"
+    num_units: 1
+    annotations:
+      gui-x: "0"
+      gui-y: "800"
+  ganglia-node:
+    charm: "cs:~bigdata-dev/xenial/ganglia-node-0"
+    annotations:
+      gui-x: "250"
+      gui-y: "400"
+  rsyslog:
+    charm: "cs:trusty/rsyslog-10"
+    num_units: 1
+    annotations:
+      gui-x: "1000"
+      gui-y: "800"
+  rsyslog-forwarder-ha:
+    charm: "cs:~bigdata-dev/xenial/rsyslog-forwarder-ha-0"
+    annotations:
+      gui-x: "750"
+      gui-y: "400"
+  openjdk:
+    charm: "cs:xenial/openjdk-4"
+    annotations:
+      gui-x: "500"
+      gui-y: "400"
     options:
       java-type: "jdk"
       java-major: "8"
-  zookeeper:
-    charm: cs:~bigdata-dev/trusty/zookeeper
-    num_units: 3
-    annotations:
-      gui-x: "0"
-      gui-y: "200"
-  spark:
-    charm: cs:~bigdata-dev/trusty/spark
-    num_units: 3
-    annotations:
-      gui-x: "250"
-      gui-y: "200"
-    constraints: mem=3G
-  topbeat:
-    charm: cs:~containers/trusty/topbeat
-    annotations:
-      gui-x: "500"
-      gui-y: "125"
-  filebeat:
-    charm: cs:~containers/trusty/filebeat
-    annotations:
-      gui-x: "500"
-      gui-y: "375"
-  elasticsearch:
-    charm: cs:trusty/elasticsearch
-    num_units: 1
-    annotations:
-      gui-x: "750"
-      gui-y: "200"
-  kibana:
-    charm: cs:~containers/trusty/kibana
-    num_units: 1
-    expose: true
-    annotations:
-      gui-x: "1000"
-      gui-y: "200"
-series: trusty
+series: xenial
 relations:
-  - [spark, openjdk]
-  - [openjdk, zookeeper]
   - [spark, zookeeper]
-  - ["kibana:rest", "elasticsearch:client"]
-  - ["filebeat:elasticsearch", "elasticsearch:client"]
-  - ["filebeat:beats-host", "spark:juju-info"]
-  - ["topbeat:elasticsearch", "elasticsearch:client"]
-  - ["topbeat:beats-host", "spark:juju-info"]
+  - [ganglia-node, spark]
+  - ["ganglia:node", "ganglia-node:node"]
+  - [rsyslog-forwarder-ha, spark]
+  - ["rsyslog:aggregator", "rsyslog-forwarder-ha:syslog"]
+  - [openjdk, spark]

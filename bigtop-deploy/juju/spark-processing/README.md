@@ -14,7 +14,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-# Apache Spark
+## Overview
 
 This bundle provides a complete deployment of the processing components using
 [Apache Spark](https://spark.apache.org/) in standalone HA mode as packaged
@@ -25,69 +25,131 @@ These components include:
   * Zookeeper (3 units)
 
 In addition to monitoring facilities offered by Spark (the job history server)
-this bundle pairs Spark with an ELK stack (Elasticsearch-Logstash-Kibana)
-in order to analyse Spark logs.
+this bundle pairs Spark with ganglia and rsyslog to monitor cluster health
+and syslog activity.
 
 Deploying this bundle gives you a fully configured and connected Apache Spark
 cluster on any supported cloud, which can be easily scaled to meet workload
 demands.
 
 
-## Deploying this bundle
+## Deploying
 
-In this deployment, the aforementioned components are deployed on separate
-units. To deploy this bundle, simply use:
+A working Juju installation is assumed to be present. If you have not yet set
+up Juju, please follow the [getting-started][] instructions
+prior to deploying this bundle. Once ready, deploy this bundle with the
+`juju deploy` command:
 
     juju deploy spark-processing
 
-This will deploy this bundle and all the charms from the [charm store][].
+_**Note**: The above assumes Juju 2.0 or greater. If using an earlier version
+of Juju, use [juju-quickstart](https://launchpad.net/juju-quickstart) with the
+following syntax: `juju quickstart spark-processing`._
 
-> Note: With Juju versions < 2.0, you will need to use [juju-deployer][] to
-deploy the bundle.
+You can also build all of the charms from their source layers in the
+[Bigtop charm repository][].  See the [Bigtop charm README][] for instructions
+on building and deploying these charms locally.
 
-The default bundle deploys three Spark nodes. To scale the cluster, use:
+[getting-started]: https://jujucharms.com/docs/2.0/getting-started
+[Bigtop charm repository]: https://github.com/apache/bigtop/tree/master/bigtop-packages/src/charm
+[Bigtop charm README]: https://github.com/apache/bigtop/blob/master/bigtop-packages/src/charm/README.md
 
-    juju add-unit spark -n 2
+## Verifying the deployment
 
-This will add two additional Spark nodes, for a total of five.
+### Status
+The applications that make up this bundle provide status messages to
+indicate when they are ready:
 
-[charm store]: https://jujucharms.com/
-[juju-deployer]: https://pypi.python.org/pypi/juju-deployer/
-
-### Verify the deployment
-
-The services provide extended status reporting to indicate when they are ready:
-
-    juju status --format=tabular
+    juju status
 
 This is particularly useful when combined with `watch` to track the on-going
 progress of the deployment:
 
-    watch -n 0.5 juju status --format=tabular
+    watch -n 0.5 juju status
 
-The Spark charm provides a `smoke-test` action that can be used to verify that
-it functions as expected:
+The message for each unit will provide information about that unit's state.
+Once they all indicate that they are ready, you can perform a smoke test
+to verify that the bundle is working as expected.
 
-    juju action do spark/0 smoke-test
-    watch -n 0.5 juju action status
+### Smoke Test
+The Spark charm provide a `smoke-test` action that can be used to verify the
+application is functioning as expected. Run it with the following:
 
-Eventually, the action should settle to `status: completed`.  If not
-then it means that component is not working as expected.
-You can get more information about that component's smoke test:
+    juju run-action spark/0 smoke-test
 
-    juju action fetch <action-id>
+_**Note**: The above assumes Juju 2.0 or greater. If using an earlier version
+of Juju, the syntax is `juju action do spark/0 smoke-test`._
 
-Using Spark job history server you can inspect the status of the curently running jobs
-as well as the ones finished. The Spark and system logs of the Spark nodes are collected
-and indexed at the Elasticsearch node. By navigatng to http://<kibana-host> you gain
-access to the log analysis facilities of this bundle.
+You can watch the progress of the smoke test action with:
+
+    watch -n 0.5 juju show-action-status
+
+_**Note**: The above assumes Juju 2.0 or greater. If using an earlier version
+of Juju, the syntax is `juju action status`._
+
+Eventually, the smoke test should settle to `status: completed`.  If
+it reports `status: failed`, Spark is not working as expected. Get
+more information about the smoke-test action
+
+    juju show-action-output <action-id>
+
+_**Note**: The above assumes Juju 2.0 or greater. If using an earlier version
+of Juju, the syntax is `juju action fetch <action-id>`._
+
+
+## Monitoring
+
+This bundle includes Ganglia for system-level monitoring of the spark units.
+Metrics are sent to a centralized ganglia unit for easy viewing in a browser.
+To view the ganglia web interface, first expose the service:
+
+    juju expose ganglia
+
+Now find the ganglia public IP address:
+
+    juju status ganglia
+
+The ganglia web interface will be available at:
+
+    http://GANGLIA_PUBLIC_IP/ganglia
+
+
+## Logging
+
+This bundle includes rsyslog to collect syslog data from the spark unit. These
+logs are sent to a centralized rsyslog unit for easy syslog analysis. One
+method of viewing this log data is to simply cat syslog from the rsyslog unit:
+
+    juju run --unit rsyslog/0 'sudo cat /var/log/syslog'
+
+You can also forward logs to an external rsyslog processing service. See
+the *Forwarding logs to a system outside of the Juju environment* section of
+the [rsyslog README](https://jujucharms.com/rsyslog/) for more information.
+
+
+## Scaling
+
+This bundle was designed to scale out. By default, three spark units are
+deployed. To increase the amount of Spark workers, simply add more units. To
+add one unit:
+
+    juju add-unit spark
+
+You can also add multiple units, for example, to add four more spark workers:
+
+    juju add-unit -n4 spark
+
 
 ## Contact Information
 
 - <bigdata@lists.ubuntu.com>
 
 
-## Help
+## Resources
 
+- [Apache Bigtop](http://bigtop.apache.org/) home page
+- [Apache Bigtop issue tracking](http://bigtop.apache.org/issue-tracking.html)
+- [Apache Bigtop mailing lists](http://bigtop.apache.org/mail-lists.html)
+- [Juju Bigtop charms](https://jujucharms.com/q/apache/bigtop)
 - [Juju mailing list](https://lists.ubuntu.com/mailman/listinfo/juju)
 - [Juju community](https://jujucharms.com/community)
