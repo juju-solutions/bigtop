@@ -7,7 +7,7 @@ services:
       gui-y: "0"
     constraints: mem=7G
   zookeeper:
-    charm: "cs:trusty/apache-zookeeper-3"
+    charm: "cs:~charmers/trusty/zookeeper-1"
     num_units: 3
     annotations:
       gui-x: "500"
