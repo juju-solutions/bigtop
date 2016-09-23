@@ -147,10 +147,9 @@ def serve_client(client):
 #
 # Edge cases and potential bugs:
 #
-# 1. Juju leader changes in the middle of a restart: this needs to be
-#    tested, but should work. The leader data should get picked up by
-#    the next leader, and we'll need to generate a fresh restart_queue
-#    anyway, as the Juju leader node has gone away.
+# 1. Juju leader changes in the middle of a restart: this gets a
+#    little bit dicey, but it should work. The new leader should run
+#    `check_cluster_departed`, and start a new restart_queue.
 #
 # 2. Unrelated relation data changes in the middle of a restart: this
 #    could cause us to skip a node, as the Juju leader will set the
@@ -183,9 +182,9 @@ def _ip_list(nodes):
     return [node[1].split(':')[0] for node in nodes]
 
 
-@when('zookeeper.started')
-@when('leadership.is_leader')
-def check_cluster():
+@when('zookeeper.started', 'leadership.is_leader', 'zkpeer.joined')
+@when_not('zkpeer.departed')
+def check_cluster(zkpeer):
     '''
     Checkup on the state of the cluster. Start a rolling restart if
     the peers have changed.
@@ -193,13 +192,28 @@ def check_cluster():
     '''
     zk = Zookeeper()
     if data_changed('zkpeer.nodes', zk.read_peers()):
-        peers = _ip_list(zk.sort_peers())
+        peers = _ip_list(zk.sort_peers(zkpeer))
         nonce = time.time()
         hookenv.log('Quorum changed. Restart queue: {}'.format(peers))
         leader_set(
             restart_queue=json.dumps(peers),
             restart_nonce=json.dumps(nonce)
         )
+
+
+@when('zookeeper.started', 'leadership.is_leader', 'zkpeer.joined',
+      'zkpeer.departed')
+def check_cluster_departed(zkpeer, zkpeer_departed):
+    '''
+    Wrapper around check_cluster.
+
+    Together with check_cluster, implements the following logic:
+
+    "Run this when zkpeer.joined and zkpeer departed, or zkpeer.joined
+    and not zkpeer.departed"
+
+    '''
+    check_cluster(zkpeer)
 
 
 @when('leadership.changed.restart_queue', 'zkpeer.joined')

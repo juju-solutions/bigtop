@@ -84,14 +84,14 @@ class Zookeeper(object):
         nodes = [format_node(*node) for node in nodes]
         return nodes
 
-    def sort_peers(self):
+    def sort_peers(self, zkpeer):
         '''
         Return peers, sorted in an order suitable for performing a rolling
         restart.
 
         '''
         peers = self.read_peers()
-        leader = RelationBase.from_state('zkpeer.joined').find_zk_leader()
+        leader = zkpeer.find_zk_leader()
         peers.sort(key=lambda x: x[1] == leader)
 
         return peers
