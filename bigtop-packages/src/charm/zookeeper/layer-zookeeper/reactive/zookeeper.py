@@ -18,7 +18,7 @@ import time
 from charmhelpers.core import hookenv
 from charms.layer.zookeeper import Zookeeper
 from charms.leadership import leader_set, leader_get
-from charms.reactive import set_state, when, when_not, is_state, remove_state
+from charms.reactive import set_state, when, when_not, is_state
 from charms.reactive.helpers import data_changed
 
 
@@ -95,9 +95,9 @@ def serve_client(client):
 #    Juju peer relation data.
 #
 # 1. When a node is added or remove from the cluster, the Juju leader
-#    runs `check_cluster`, and generates a queue of nodes in the
-#    cluster, with the Zookeeper lead node sorted last in the
-#    queue. It also sets a nonce, to identify this restart queue
+#    runs `check_cluster`, and generates a "restart queue" comprising
+#    nodes in the cluster, with the Zookeeper lead node sorted last in
+#    the queue. It also sets a nonce, to identify this restart queue
 #    uniquely, and thus handle the situation where another node is
 #    added or restarted while we're still reacting to the first node's
 #    addition or removal. The leader drops the queue and nonce into
@@ -110,26 +110,12 @@ def serve_client(client):
 #    that case, if the node is the Juju leader, it will restart, then
 #    remove itself from the restart queue, triggering another
 #    leadership.changed.restart_queue event. If the node isn't the
-#    Juju leader, it will restart itself, then run `inform_restart`,
-#    from the zookeeper-quorum interface. That triggers a little
-#    dance:
+#    Juju leader, it will restart itself, then run `inform_restart`.
 #
-# 2a. `inform_restart` will set
-#     "{relation-name}.restarted.<nonce>". This will trigger a
-#     relation data changed event.
-#
-# 2b. When the relation data changes, `toggle_restarted` in the
-#     zookeeper-quorum interface will trigger.
-#
-# 2c. `toggle_restarted` is a noop on all nodes save the Juju
-#     leader. If a node is the Juju leader, and one of its relations
-#     has set zkpeer.restarted.<nonce> for the current nonce, the
-#     leader will set the zkpeer.restarted state on itself.
-#
-# 3. If a leader is in the 'zkpeer.restarted' state, it will run
-#    `update_restart_queue`. This will remove the first node in the
-#    restart_queue, clear the 'zkpeer.restarted' state, then update
-#    the restart_queue leadership data, looping us back to step 2.
+# 3. `inform_restart` will create a relation data changed event, which
+#    triggers `update_restart_queue` to run on the leader. This method
+#    will update the restart_queue, clearing any nodes that have
+#    restarted for the current nonce, and looping us back to step 2.
 #
 # 4. Once all the nodes have restarted, we should be in the following state:
 #
@@ -138,8 +124,6 @@ def serve_client(client):
 #
 #    * The Zookeeper leader has restarted last, which should help
 #      prevent orphaned jobs, per the Zookeeper docs.
-#
-#    * The Juju leader is no longer in the zkpeer.restarted state
 #
 #    * peers still have zkpeer.restarted.<nonce> set on their relation
 #      data. This is okay, as we will generate a new nonce next time,
@@ -150,14 +134,6 @@ def serve_client(client):
 # 1. Juju leader changes in the middle of a restart: this gets a
 #    little bit dicey, but it should work. The new leader should run
 #    `check_cluster_departed`, and start a new restart_queue.
-#
-# 2. Unrelated relation data changes in the middle of a restart: this
-#    could cause us to skip a node, as the Juju leader will set the
-#    'zkpeer.restarted' state as long as a) any relation data has
-#    changed, and b) any node has set zkpeer.restarted.<nonce> for the
-#    current nonce. A human could fix this by manually restarting the
-#    skipped node, then restarting the Zookeeper leader. TODO: figure
-#    out how to handle this automatically.
 #
 
 def _ip_list(nodes):
@@ -225,7 +201,7 @@ def restart_for_quorum(zkpeer):
 
     '''
     private_address = hookenv.unit_get('private-address')
-    queue = json.loads(leader_get('restart_queue'))
+    queue = json.loads(leader_get('restart_queue') or '[]')
 
     if not queue:
         # Everything has restarted.
@@ -233,7 +209,7 @@ def restart_for_quorum(zkpeer):
 
     if private_address == queue[0]:
         # It's our turn to restart.
-        _restart_zookeeper('updating_quorum')
+        _restart_zookeeper('rolling restart for quorum update')
         if is_state('leadership.is_leader'):
             queue = queue[1:]
             hookenv.log('Leader updating restart queue: {}'.format(queue))
@@ -242,14 +218,20 @@ def restart_for_quorum(zkpeer):
             zkpeer.inform_restart()
 
 
-@when('leadership.is_leader', 'zkpeer.restarted')
+@when('leadership.is_leader', 'zkpeer.joined')
 def update_restart_queue(zkpeer):
     '''
     If a Zookeeper node has restarted as part of a rolling restart,
     pop it off of the queue.
 
     '''
-    queue = json.loads(leader_get('restart_queue'))[1:]
-    remove_state('zkpeer.restarted')
-    hookenv.log('Leader updating restart queue: {}'.format(queue))
-    leader_set(restart_queue=json.dumps(queue))
+    queue = json.loads(leader_get('restart_queue') or '[]')
+    if not queue:
+        return
+
+    restarted_nodes = _ip_list(zkpeer.restarted_nodes())
+    new_queue = [node for node in queue if node not in restarted_nodes]
+
+    if new_queue != queue:
+        hookenv.log('Leader updating restart queue: {}'.format(queue))
+        leader_set(restart_queue=json.dumps(new_queue))
