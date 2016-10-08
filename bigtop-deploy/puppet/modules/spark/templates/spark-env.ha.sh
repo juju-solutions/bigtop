@@ -21,9 +21,7 @@ export HADOOP_HOME=${HADOOP_HOME:-/usr/lib/hadoop}
 export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-/etc/hadoop/conf}
 export HIVE_CONF_DIR=${HIVE_CONF_DIR:-/etc/hive/conf}
 
-export STANDALONE_SPARK_MASTER_HOST=<%= @master_host %>
 export SPARK_MASTER_PORT=<%= @master_port %>
-export SPARK_MASTER_IP=$STANDALONE_SPARK_MASTER_HOST
 export SPARK_MASTER_WEBUI_PORT=<%= @master_ui_port %>
 
 export SPARK_WORKER_DIR=${SPARK_WORKER_DIR:-/var/run/spark/work}
