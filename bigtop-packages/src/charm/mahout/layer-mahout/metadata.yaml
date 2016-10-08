@@ -1,0 +1,12 @@
+name: mahout
+summary: Apache Mahout software charm.
+description: >
+  The Apache Mahout™ project's goal is to build an environment 
+  for quickly creating scalable performant machine
+  learning applications.
+
+subordinate: true
+requires:
+  mahout:
+    interface: mahout
+    scope: container
