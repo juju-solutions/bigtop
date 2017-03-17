@@ -5,3 +5,8 @@ sources:
 packages:
   - amulet
   - python3-yaml
+excludes:
+  - ganglia
+  - ganglia-node
+  - rsyslog
+  - rsyslog-forwarder-ha
