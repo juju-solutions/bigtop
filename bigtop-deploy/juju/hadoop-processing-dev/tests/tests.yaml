@@ -1,4 +1,4 @@
-reset: false
+reset: true
 bundle_deploy: false
 sources:
   - 'ppa:juju/stable'
