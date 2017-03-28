@@ -6,21 +6,21 @@ bundle:
 charm-upgrade:
   ~bigdata-dev/hadoop-client:
     from-channel: edge
-    release: true
+    release: false
     to-channel: beta
   ~bigdata-dev/hadoop-namenode:
     from-channel: edge
-    release: true
+    release: false
     to-channel: beta
   ~bigdata-dev/hadoop-resourcemanager:
     from-channel: edge
-    release: true
+    release: false
     to-channel: beta
   ~bigdata-dev/hadoop-slave:
     from-channel: edge
-    release: true
+    release: false
     to-channel: beta
   ~bigdata-dev/hadoop-plugin:
     from-channel: edge
-    release: true
+    release: false
     to-channel: beta

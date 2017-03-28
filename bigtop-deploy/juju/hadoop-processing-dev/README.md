@@ -35,7 +35,7 @@ and syslog activity.
 
 ## Bundle Composition
 
-The applications that comprise this bundle are spread across 6 machines as
+The applications that comprise this bundle are spread across 5 machines as
 follows:
 
   * NameNode (HDFS)
@@ -47,8 +47,9 @@ follows:
   * Plugin (Facilitates communication with the Hadoop cluster)
     * Colocated on the Client unit
   * Ganglia (Web interface for monitoring cluster metrics)
+    * Colocated on the Client unit
   * Rsyslog (Aggregate cluster syslog events in a single location)
-    * Colocated on the Ganglia unit
+    * Colocated on the Client unit
 
 Deploying this bundle results in a fully configured Apache Bigtop
 cluster on any supported cloud, which can be scaled to meet workload
