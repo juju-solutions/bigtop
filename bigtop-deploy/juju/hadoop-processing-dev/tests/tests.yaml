@@ -1,5 +1,5 @@
 reset: true
-bundle_deploy: false
+bundle_deploy: true
 sources:
   - 'ppa:juju/stable'
 packages:

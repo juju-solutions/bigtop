@@ -1,0 +1,14 @@
+bundle:
+  name: spark-processing
+  namespace: bigdata-dev
+  release: false
+  to-channel: edge
+charm-upgrade:
+  ~bigdata-dev/spark:
+    from-channel: edge
+    release: false
+    to-channel: beta
+  ~bigdata-dev/zookeeper:
+    from-channel: edge
+    release: false
+    to-channel: beta
