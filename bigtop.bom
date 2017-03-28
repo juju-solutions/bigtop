@@ -44,6 +44,11 @@
      APACHE_MIRROR = "http://apache.osuosl.org"
      APACHE_ARCHIVE = "https://archive.apache.org/dist"
    }
+   git { // *optional* This is a global setting to access protected git repositories, 
+         //            can be specified per component as well
+     user = "john_doe"
+     token = "john's access token"
+   }
    components { *required; preserve the name* if empty, nothing will be built
      'label' { // label *SHOULD* be the same as the name; otherwise some tasks will fail
        name    = 'component1' // *required* the name of the component
@@ -135,7 +140,7 @@ bigtop {
     'ignite-hadoop' {
       name    = 'ignite-hadoop'
       relNotes = 'Apache Ignite in-memory data fabric'
-      version { base = '1.5.0.final'; pkg = base; release = 1 }
+      version { base = '1.9.0'; pkg = base; release = 1 }
       tarball { destination = "${name}-${version.base}.tar.gz"
                 source      = "apache-ignite-${version.base}-src.zip" }
       url     { download_path = "/ignite/${version.base}/"
@@ -338,7 +343,7 @@ bigtop {
     }
     'bigtop-groovy' {
       name    = 'bigtop-groovy'
-      version { base = '2.4.4'; pkg = '2.4.4'; release = 1}
+      version { base = '2.4.10'; pkg = '2.4.10'; release = 1}
       relNotes = "Groovy: a dynamic language for the Java platform"
       tarball { destination = "$name-${version.base}.tar.gz";
                 source      = "apache-groovy-binary-${version.base}.zip"}
@@ -467,6 +472,16 @@ bigtop {
                 source      = "${version.base}.tar.gz" }
       url     { site = "https://github.com/greenplum-db/gpdb/archive/"
                 archive = site }
+    }
+    'ambari' {
+      name    = 'ambari'
+      relNotes = 'Apache Ambari'
+      version { base = '2.4.2'; pkg = base; release = 1 }
+      tarball { destination = "apache-$name-${version.base}-src.tar.gz"
+                source      = destination }
+      url     { download_path = "/$name/$name-${version.base}/"
+                site = "${apache.APACHE_MIRROR}/${download_path}"
+                archive = "${apache.APACHE_ARCHIVE}/${download_path}" }
     }
   }
 }

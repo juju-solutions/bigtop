@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -11,15 +12,13 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.
+# limitations under the License
 
-docker:
-        memory_limit: "4g"
-        image:  "bigtop/puppet:ubuntu-14.04"
-
-repo: "http://bigtop-repos.s3.amazonaws.com/releases/1.1.0/ubuntu/trusty/x86_64"
-distro: debian
-components: [hadoop, yarn]
-enable_local_repo: false
-smoke_test_components: [mapreduce, pig]
-jdk: "openjdk-7-jdk"
+if [ "$1" == "upgrade" ]; # Action is upgrade
+then
+  if [ -d "/etc/ambari-agent/conf.save" ]
+  then
+      cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
+      mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
+  fi
+fi
