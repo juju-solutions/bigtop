@@ -1,6 +1,6 @@
 services:
   namenode:
-    charm: "cs:~bigdata-dev/xenial/hadoop-namenode-15"
+    charm: "cs:~bigdata-dev/xenial/hadoop-namenode-16"
     num_units: 1
     annotations:
       gui-x: "500"
@@ -8,7 +8,7 @@ services:
     to:
       - "0"
   resourcemanager:
-    charm: "cs:~bigdata-dev/xenial/hadoop-resourcemanager-14"
+    charm: "cs:~bigdata-dev/xenial/hadoop-resourcemanager-15"
     num_units: 1
     annotations:
       gui-x: "500"
@@ -16,7 +16,7 @@ services:
     to:
       - "0"
   slave:
-    charm: "cs:~bigdata-dev/xenial/hadoop-slave-13"
+    charm: "cs:~bigdata-dev/xenial/hadoop-slave-14"
     num_units: 3
     annotations:
       gui-x: "0"
@@ -26,7 +26,7 @@ services:
       - "2"
       - "3"
   plugin:
-    charm: "cs:~bigdata-dev/xenial/hadoop-plugin-13"
+    charm: "cs:~bigdata-dev/xenial/hadoop-plugin-14"
     annotations:
       gui-x: "1000"
       gui-y: "400"
@@ -47,7 +47,7 @@ services:
     to:
       - "5"
   ganglia-node:
-    charm: "cs:~bigdata-dev/xenial/ganglia-node-6"
+    charm: "cs:~bigdata-dev/xenial/ganglia-node-7"
     annotations:
       gui-x: "250"
       gui-y: "400"

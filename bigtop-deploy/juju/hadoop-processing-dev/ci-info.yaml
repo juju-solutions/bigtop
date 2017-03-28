@@ -2,7 +2,7 @@ bundle:
   name: hadoop-processing
   namespace: bigdata-dev
   release: false
-  to-channel: beta
+  to-channel: edge
 charm-upgrade:
   ~bigdata-dev/hadoop-client:
     from-channel: edge
