@@ -1,4 +1,4 @@
-reset: true
+reset: false
 deployment_timeout: 3600
 sources:
   - 'ppa:juju/stable'
