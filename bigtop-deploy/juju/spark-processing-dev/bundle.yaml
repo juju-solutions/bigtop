@@ -73,4 +73,4 @@ machines:
     constraints: "mem=3G root-disk=32G"
   "5":
     series: "xenial"
-    constraints: "mem=3G root-disk=32G"
+    constraints: "mem=3G"

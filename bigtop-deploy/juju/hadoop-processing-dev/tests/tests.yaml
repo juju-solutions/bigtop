@@ -5,6 +5,7 @@ sources:
 packages:
   - amulet
   - python3-yaml
+# exclude tests that are unrelated to bigtop.
 excludes:
   - ganglia
   - ganglia-node
