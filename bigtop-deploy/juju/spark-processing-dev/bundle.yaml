@@ -1,6 +1,6 @@
 services:
   spark:
-    charm: "cs:~bigdata-dev/xenial/spark-20"
+    charm: "cs:~bigdata-dev/xenial/spark-21"
     constraints: "mem=7G root-disk=32G"
     num_units: 2
     annotations:
