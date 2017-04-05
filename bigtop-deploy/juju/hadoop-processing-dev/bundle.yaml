@@ -1,6 +1,6 @@
 services:
   namenode:
-    charm: "cs:~bigdata-dev/xenial/hadoop-namenode-20"
+    charm: "cs:~bigdata-dev/xenial/hadoop-namenode-22"
     constraints: "mem=7G root-disk=32G"
     num_units: 1
     annotations:
@@ -9,7 +9,7 @@ services:
     to:
       - "0"
   resourcemanager:
-    charm: "cs:~bigdata-dev/xenial/hadoop-resourcemanager-19"
+    charm: "cs:~bigdata-dev/xenial/hadoop-resourcemanager-21"
     constraints: "mem=7G root-disk=32G"
     num_units: 1
     annotations:
@@ -18,7 +18,7 @@ services:
     to:
       - "0"
   slave:
-    charm: "cs:~bigdata-dev/xenial/hadoop-slave-18"
+    charm: "cs:~bigdata-dev/xenial/hadoop-slave-20"
     constraints: "mem=7G root-disk=32G"
     num_units: 3
     annotations:
@@ -29,7 +29,7 @@ services:
       - "2"
       - "3"
   plugin:
-    charm: "cs:~bigdata-dev/xenial/hadoop-plugin-18"
+    charm: "cs:~bigdata-dev/xenial/hadoop-plugin-20"
     annotations:
       gui-x: "1000"
       gui-y: "400"
