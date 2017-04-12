@@ -178,7 +178,7 @@ The web interface will be available at the following URL:
 # Monitoring
 
 This bundle includes Ganglia for system-level monitoring of the namenode,
-resourcemanager, slave, and client units. Metrics are sent to a centralized
+resourcemanager, slave, and spark units. Metrics are sent to a centralized
 ganglia unit for easy viewing in a browser. To view the ganglia web interface,
 find the `PUBLIC-ADDRESS` of the Ganglia application and expose it:
 
@@ -193,7 +193,7 @@ The web interface will be available at:
 # Logging
 
 This bundle includes rsyslog to collect syslog data from the namenode,
-resourcemanager, slave, and client units. These logs are sent to a
+resourcemanager, slave, and spark units. These logs are sent to a
 centralized rsyslog unit for easy syslog analysis of the units that make up
 the Hadoop cluster. One method of viewing this log data is to simply cat syslog
 from the rsyslog unit:

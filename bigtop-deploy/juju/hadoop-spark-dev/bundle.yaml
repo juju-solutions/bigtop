@@ -88,15 +88,15 @@ relations:
   - [plugin, resourcemanager]
   - [spark, plugin]
   - [client, plugin]
-  - ["ganglia-node:juju-info", "client:juju-info"]
   - ["ganglia-node:juju-info", "namenode:juju-info"]
   - ["ganglia-node:juju-info", "resourcemanager:juju-info"]
   - ["ganglia-node:juju-info", "slave:juju-info"]
+  - ["ganglia-node:juju-info", "spark:juju-info"]
   - ["ganglia:node", "ganglia-node:node"]
-  - ["rsyslog-forwarder-ha:juju-info", "client:juju-info"]
   - ["rsyslog-forwarder-ha:juju-info", "namenode:juju-info"]
   - ["rsyslog-forwarder-ha:juju-info", "resourcemanager:juju-info"]
   - ["rsyslog-forwarder-ha:juju-info", "slave:juju-info"]
+  - ["rsyslog-forwarder-ha:juju-info", "spark:juju-info"]
   - ["rsyslog:aggregator", "rsyslog-forwarder-ha:syslog"]
 machines:
   "0":
