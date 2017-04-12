@@ -1,0 +1,30 @@
+bundle:
+  name: hadoop-processing
+  namespace: bigdata-dev
+  release: false
+  to-channel: edge
+charm-upgrade:
+  ~bigdata-dev/hadoop-client:
+    from-channel: edge
+    release: false
+    to-channel: beta
+  ~bigdata-dev/hadoop-namenode:
+    from-channel: edge
+    release: false
+    to-channel: beta
+  ~bigdata-dev/hadoop-resourcemanager:
+    from-channel: edge
+    release: false
+    to-channel: beta
+  ~bigdata-dev/hadoop-slave:
+    from-channel: edge
+    release: false
+    to-channel: beta
+  ~bigdata-dev/hadoop-plugin:
+    from-channel: edge
+    release: false
+    to-channel: beta
+  ~bigdata-dev/spark:
+    from-channel: edge
+    release: false
+    to-channel: beta

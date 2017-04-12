@@ -26,10 +26,12 @@ to deliver high-availability, Hadoop can detect and handle failures at the
 application layer. This provides a highly-available service on top of a cluster
 of machines, each of which may be prone to failure.
 
-This bundle provides a complete deployment of the core Hadoop components of
-the [Apache Bigtop][] platform to perform distributed data processing at scale.
-Ganglia and rsyslog applications are also provided to monitor cluster health
-and syslog activity.
+Spark is a fast and general engine for large-scale data processing.
+
+This bundle provides a complete deployment of Hadoop and Spark components from
+[Apache Bigtop][] that performs distributed data processing at scale. Ganglia
+and rsyslog applications are also provided to monitor cluster health and syslog
+activity.
 
 [Apache Bigtop]: http://bigtop.apache.org/
 
@@ -44,6 +46,8 @@ follows:
   * Slave (DataNode and NodeManager)
     * 3 separate units
   * Client (Hadoop endpoint)
+  * Spark (Master in yarn-client mode)
+    * Colocated on the Client unit
   * Plugin (Facilitates communication with the Hadoop cluster)
     * Colocated on the Client unit
   * Ganglia (Web interface for monitoring cluster metrics)
@@ -68,7 +72,7 @@ and `machines: 'X': constraints: mem=3G` as needed to satisfy account limits.
 
 Deploy this bundle from the Juju charm store with the `juju deploy` command:
 
-    juju deploy hadoop-processing
+    juju deploy hadoop-spark
 
 Alternatively, deploy a locally modified `bundle.yaml` with:
 
@@ -84,7 +88,7 @@ in this environment, configure a Juju model with appropriate proxy and/or
 mirror options. See [Configuring Models][] for more information.
 
 [getting-started]: https://jujucharms.com/docs/stable/getting-started
-[bundle.yaml]: https://github.com/apache/bigtop/blob/master/bigtop-deploy/juju/hadoop-processing/bundle.yaml
+[bundle.yaml]: https://github.com/apache/bigtop/blob/master/bigtop-deploy/juju/hadoop-spark/bundle.yaml
 [Bigtop charm repository]: https://github.com/apache/bigtop/tree/master/bigtop-packages/src/charm
 [Bigtop charm README]: https://github.com/apache/bigtop/blob/master/bigtop-packages/src/charm/README.md
 [Configuring Models]: https://jujucharms.com/docs/stable/models-config
@@ -108,7 +112,7 @@ Once they all indicate that they are ready, perform application smoke tests
 to verify that the bundle is working as expected.
 
 ## Smoke Test
-The charms for each core component (namenode, resourcemanager, and slave)
+The charms for each core component (namenode, resourcemanager, slave, and spark)
 provide a `smoke-test` action that can be used to verify the application is
 functioning as expected. Note that the 'slave' component runs extensive
 tests provided by Apache Bigtop and may take up to 30 minutes to complete.
@@ -117,6 +121,7 @@ Run the smoke-test actions as follows:
     juju run-action namenode/0 smoke-test
     juju run-action resourcemanager/0 smoke-test
     juju run-action slave/0 smoke-test
+    juju run-action spark/0 smoke-test
 
 Watch the progress of the smoke test actions with:
 
@@ -158,6 +163,16 @@ The YARN and Job History web interfaces will be available at the following URLs:
 
     http://RESOURCEMANAGER_PUBLIC_IP:8088
     http://RESOURCEMANAGER_PUBLIC_IP:19888
+
+Finally, to access the Spark web console, find the `PUBLIC-ADDRESS` of the
+spark application and expose it:
+
+    juju status spark
+    juju expose spark
+
+The web interface will be available at the following URL:
+
+    http://SPARK_PUBLIC_IP:8080
 
 
 # Monitoring
@@ -237,6 +252,35 @@ run with `juju run-action`:
       completed: 2016-02-04 14:57:48 +0000 UTC
       enqueued: 2016-02-04 14:55:14 +0000 UTC
       started: 2016-02-04 14:55:27 +0000 UTC
+
+The `spark` charm in this bundle also provides benchmarks to gauge
+the performance of the Spark cluster. Each benchmark is an action that can be
+run with `juju run-action`:
+
+    $ juju actions spark
+    ...
+    pagerank                          Calculate PageRank for a sample data set
+    sparkpi                           Calculate Pi
+    ...
+
+    $ juju run-action spark/0 pagerank
+    Action queued with id: 339cec1f-e903-4ee7-85ca-876fb0c3d28e
+
+    $ juju show-action-output 339cec1f-e903-4ee7-85ca-876fb0c3d28e
+    results:
+      meta:
+        composite:
+          direction: asc
+          units: secs
+          value: "83"
+        start: 2017-04-12T23:22:38Z
+        stop: 2017-04-12T23:24:01Z
+      output: '{''status'': ''completed''}'
+    status: completed
+    timing:
+      completed: 2017-04-12 23:24:02 +0000 UTC
+      enqueued: 2017-04-12 23:22:36 +0000 UTC
+      started: 2017-04-12 23:22:37 +0000 UTC
 
 
 # Scaling
